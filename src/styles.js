@@ -236,9 +236,22 @@ export default {
       backgroundColor: green[500],
     },
     imageFit: {
-      height: '24%',
-      margin: 'auto',
-      display: 'block',
+      width: '100%',
+      maxWidth: 500,
+    },
+    imageBlur: {
+      width: '100%',
+      maxWidth: 500,
+      opacity: 0.3,
+    },
+    middle: {
+      transition: '.5s ease',
+      opacity: 1,
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      textAlign: 'center',
     },
     imageTable: {
       width: 'auto',
@@ -251,16 +264,28 @@ export default {
       background: theme.palette.secondary.main,
     },
     highlightCorrect: {
-        background: green,
+        background: green[500],
     },
     highlightWrong: {
-        background: red,
+        background: red[500],
     },
     playIcon: {
       width: 30,
       height: 30,
       marginTop: 5,
       color: green[500],
+    },
+    correctIcon: {
+      width: 50,
+      height: 50,
+      marginTop: 5,
+      color: green[500],
+    },
+    wrongIcon: {
+      width: 50,
+      height: 50,
+      marginTop: 5,
+      color: red[500],
     },
     playingIcon: {
       width: 30,

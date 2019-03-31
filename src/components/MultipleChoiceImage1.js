@@ -3,22 +3,29 @@ import React from 'react';
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
+import Mood from '@material-ui/icons/Mood';
+import MoodBad from '@material-ui/icons/MoodBad';
+
 import AudioPrompt from './AudioPrompt';
 
+import { shuffle } from '../services/helpers';
 
 class MultipleChoiceImage1 extends React.Component { 
 
     state = {
-        images: null,
+        images: [],
         slideId: 0,
         result: 0,
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
         if (nextProps.slide.id !== prevState.slideId) {
-            let images = {};
-            nextProps.slide.medias.forEach(media => {
-                images[media.id] = nextProps.classes.imageHolder;
+            const images = shuffle(nextProps.slide.medias).map(media => {
+                return {
+                    ...media,
+                    correct: false,
+                    wrong: false,
+                }
             });
             return {
                 images,
@@ -31,8 +38,13 @@ class MultipleChoiceImage1 extends React.Component {
     }
 
     selectCorrect = id => {
-        let images = {...this.state.images};
-        images[id] = this.props.classes.imageHolderCorrect;
+        const images = this.state.images.map(image => {
+            if (image.id === id) {
+                image.correct = true;
+            }
+            return image;
+        });
+        
         this.setState({ images });
         setTimeout(() => {
             const result = this.state.result === -1 ? -1 : 1;
@@ -41,8 +53,13 @@ class MultipleChoiceImage1 extends React.Component {
     }
 
     selectWrong = id => {
-        let images = {...this.state.images};
-        images[id] = this.props.classes.imageHolderWrong;
+        const images = this.state.images.map(image => {
+            if (image.id === id) {
+                image.wrong = true;
+            }
+            return image;
+        });
+        
         this.setState({ 
             images,
             result: -1, 
@@ -58,22 +75,50 @@ class MultipleChoiceImage1 extends React.Component {
                 <AudioPrompt 
                     audioFileName={slide.audioFileName}
                     instructions={slide.instructions}
-                    labelUpper={target.media.thai}
-                    labelLower={target.media.phonetic}
+                    labelUpper={target.thai}
+                    labelLower={target.phonetic}
                 />
                 <table className={classes.imageTable} align="center">
                     <tbody>
-                    {images && images.map(image => 
+                    {images.map(image => 
                         <tr key={image.id}>
-                            <td 
-                                className={image.className}
-                                onClick={image.isTarget === "1" ? 
-                                    () => this.selectCorrect(image.id) :
-                                    () => this.selectWrong(image.id)
-                                }
-                            >
-                                <img alt="" className={classes.imageFit}  src={imageUrl + image.imageFileName}/> 
+                        {image.correct &&
+                            <td style={{ position: 'relative' }}>
+                                <img 
+                                    alt="" 
+                                    className={classes.imageBlur}  
+                                    src={imageUrl + image.imageFileName}
+                                /> 
+                                <div className={classes.middle}>
+                                    <Mood className={classes.correctIcon} />
+                                </div>
                             </td>
+                        }
+                        {image.wrong &&
+                            <td style={{ position: 'relative' }}>
+                                <img 
+                                    alt="" 
+                                    className={classes.imageBlur}  
+                                    src={imageUrl + image.imageFileName}
+                                /> 
+                                <div className={classes.middle}>
+                                    <MoodBad className={classes.wrongIcon} />
+                                </div>
+                            </td>
+                        }   
+                        {!image.wrong && !image.correct &&
+                            <td >
+                                <img 
+                                    alt="" 
+                                    className={classes.imageFit}  
+                                    onClick={image.isTarget === "1" ? 
+                                        () => this.selectCorrect(image.id) :
+                                        () => this.selectWrong(image.id)
+                                    }
+                                    src={imageUrl + image.imageFileName}
+                                /> 
+                            </td>
+                        }
                         </tr>   
                     )}
                     </tbody>
