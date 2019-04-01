@@ -20,8 +20,9 @@ import ContentWithNavBar from './components/ContentWithNavBar';
 import SearchResults from './components/SearchResults';
 import Favourites from './components/Favourites';
 import Totals from './components/Totals';
-import Home from './components/Home';
-import PhraseList from './components/PhraseList';
+import Menu from './components/Menu';
+import Login from './components/Login';
+import Partners from './components/Partners';
 
 import theme from './theme';
 import styles from './styles';
@@ -42,7 +43,7 @@ class App extends Component {
                 exact path="/"
                 render={ props =>
                   <ContentWithNavBar {...props}>
-                    <Home {...props} />
+                    <Menu {...props} handleClick={null} />
                   </ContentWithNavBar>
                 }
               />
@@ -122,6 +123,23 @@ class App extends Component {
                   <Totals {...props} />
                 }
               />
+              <Route
+                path="/login/"
+                render={props => 
+                  <ContentWithNavBar {...props}>
+                    <Login {...props} />
+                  </ContentWithNavBar>
+                }
+              />
+              <Route
+                path="/partners/"
+                render={props =>
+                  <ContentWithNavBar {...props}>
+                    <Partners {...props} />
+                  </ContentWithNavBar>
+                }
+              />
+                
             </Switch>
         </BrowserRouter>
       </MuiThemeProvider>

@@ -80,7 +80,7 @@ export default {
       },
     },
     content: {
-      marginTop: 70,
+      marginTop: 60,
       
     },
     lessonContent: {
