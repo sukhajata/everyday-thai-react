@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from 'reactn';
 
 import PropTypes from 'prop-types';
 
@@ -23,15 +23,17 @@ import Totals from './components/Totals';
 import Menu from './components/Menu';
 import Login from './components/Login';
 import Partners from './components/Partners';
+import SignIn from './components/SignIn';
+import PartnerChat from './components/PartnerChat';
 
 import theme from './theme';
 import styles from './styles';
 
 class App extends Component {
 
-  async componentDidMount() {
+  async componentDidMount() {    
     await dbSetup();
-}
+  }
 
   render() {
     const { classes } =this.props;
@@ -132,10 +134,26 @@ class App extends Component {
                 }
               />
               <Route
+                path="/signin"
+                render={props => 
+                  <ContentWithNavBar {...props}>
+                    <SignIn {...props} />
+                  </ContentWithNavBar>
+                }
+              />
+              <Route
                 path="/partners/"
                 render={props =>
                   <ContentWithNavBar {...props}>
                     <Partners {...props} />
+                  </ContentWithNavBar>
+                }
+              />
+              <Route
+                path="/chat/:id"
+                render={props =>
+                  <ContentWithNavBar {...props}>
+                    <PartnerChat {...props} />
                   </ContentWithNavBar>
                 }
               />

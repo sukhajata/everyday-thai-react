@@ -4,7 +4,8 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import CircularProgress from '@material-ui/core/CircularProgress';
+
+import Loading from './Loading';
 
 import { getPartners } from '../services/dbAccess';
 
@@ -19,12 +20,28 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
-        const results = await getPartners();
-        let partners = await this.getProfilePics(results);
+        if (!this.global.user) {
+            if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
+                const user = JSON.parse(localStorage.getItem('user'));
+                this.setGlobal({
+                    user
+                });
+                //console.log(user);
+            } else {
+                this.props.history.push('/login/');
+            }
+        }
 
+        
+        const results = await getPartners();
         this.setState({ 
-            partners,
-            loading: false 
+            partners: results,
+            loading: false,
+        });
+        
+        let partners = await this.getProfilePics(results);
+        this.setState({ 
+            partners, 
         });
     }
 
@@ -40,29 +57,30 @@ class Partners extends React.Component {
         return Promise.all(promises);
     }
 
-    getThumbnail = async facebookId => {
-        const result = await fetch(graphUrl + facebookId + '/picture?height=100');
-        return result.url;
+
+    chat = async partnerId => {
+        this.props.history.push('/chat/' + partnerId);
     }
 
     render() {
         const { partners, loading } = this.state;
-        const marginLeft = document.documentElement.clientWidth / 2 - 15;
-
-        if (loading) return <CircularProgress style={{ marginLeft, marginTop: 50 }}/>
+        
+        if (loading) return <Loading />
 
         return (
             <React.Fragment>
             {partners.map(partner => 
                 <Card key={partner.Id} style={{ margin: 20 }}>
-                    <CardContent>
+                    <CardContent onClick={() => this.chat(partner.Id)}>
                         <Grid container spacing={16} >
+                        {partner.url &&
                             <Grid item>
                                 <img 
                                     src={partner.url} 
                                     alt="profile" 
                                 />
                             </Grid>
+                        }
                             <Grid item>
                                 <Typography variant="body1">
                                     {partner.Name}

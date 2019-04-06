@@ -24,17 +24,20 @@ class Login extends React.Component {
     }
 
     facebookCallback = async (response) => {
-        console.log(this.props);
         
         const { name, accessToken, userID } = response;
         const result = await fetch(graphUrl + userID + '/picture?height=100');
         
         //1349793378493942
-        this.setState({
-            name, 
+        const user = {
+            name,
+            facebookId: userID,
             thumbnailUrl: result.url,
-            userID,
-        })
+        };
+        this.setGlobal({
+           user,
+        });
+        this.props.history.push("/signin/");
     }
 
     showPicture = async () => {
@@ -78,6 +81,7 @@ class Login extends React.Component {
                     </CardContent>
                 </Card>
             }
+            <div style={{ padding: 20}}>
                 <FacebookLogin
                     appId="304315070251764"
                     autoLoad={true}
@@ -85,6 +89,7 @@ class Login extends React.Component {
                     onClick={this.componentClicked}
                     callback={this.facebookCallback} 
                 />
+            </div>
             {largeUrl &&
                 <div style={{ position: 'absolute', top: 25, left: 20 }}>
                     <img src={largeUrl} alt="hello" onClick={this.hidePicture}/>

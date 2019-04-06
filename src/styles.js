@@ -210,6 +210,9 @@ export default {
     topMargin: {
       marginTop: 0,
     },
+    textField: {
+      width: '95%',
+    },
     notes: {
       background: theme.palette.secondary.light,
       paddingBottom: 5,
@@ -220,6 +223,10 @@ export default {
     contentContainer: {
       paddingTop: 10,
       paddingBottom: 10,
+    },
+    container: {
+      marginLeft: 15,
+      marginRight: 15,
     },
     titleCard: {
       margin: 10,
@@ -325,5 +332,18 @@ export default {
     },
     hidden: {
       visibility: 'collapse',
+    },
+    chatInput: {
+      width: '90%', 
+      height: 50,
+      border: 'none',
+      padding: 5,
+      marginBottom: 10, 
+    },
+    chatTranslation: {
+      width: '90%', 
+      height: 50,
+      padding: 5,
+      border: 'none',
     }
   };
