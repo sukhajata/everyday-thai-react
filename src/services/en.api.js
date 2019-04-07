@@ -1,4 +1,4 @@
-import keys from '../keys';
+const GOOGLE_TRANSLATE_API_KEY ="AIzaSyBJqySoURbtkysGF0yEaXu4SDuOJAdRbOo";
 const API_BASE = "https://sukhajata.com/api/";
 
 export default {
@@ -15,6 +15,6 @@ export default {
     GET_QUESTIONS: API_BASE + "get-questions.php",
     ADD_CHATKIT_USER: "https://peaceful-beyond-64504.herokuapp.com/create-user",
     TOKEN_PROVIDER_URL: "https://peaceful-beyond-64504.herokuapp.com/auth",
-    DETECT_LANGUAGE: `https://translation.googleapis.com/language/translate/v2/detect?key=${keys.GOOGLE_TRANSLATE_API_KEY}`,
-    TRANSLATE: `https://translation.googleapis.com/language/translate/v2?key=${keys.GOOGLE_TRANSLATE_API_KEY}`,
+    DETECT_LANGUAGE: `https://translation.googleapis.com/language/translate/v2/detect?key=${GOOGLE_TRANSLATE_API_KEY}`,
+    TRANSLATE: `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TRANSLATE_API_KEY}`,
 }

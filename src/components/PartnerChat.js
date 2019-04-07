@@ -2,11 +2,11 @@ import React from 'reactn';
 
 import Divider from '@material-ui/core/Divider';
 
-import ControlPoint from '@material-ui/icons/ControlPoint';
 import Send from '@material-ui/icons/Send';
 import VolumeUp from '@material-ui/icons/VolumeUp';
 
 import Loading from './Loading';
+import Error from './Error';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
 
@@ -57,6 +57,7 @@ class ChatRoom extends React.Component {
         text: '',
         translated: '',
         partnerName: '',
+        error: '',
     }
     
     componentDidMount = async () => {
@@ -65,9 +66,12 @@ class ChatRoom extends React.Component {
         } else {
             const id = this.global.user.id;
             this.currentUser = await connectToChatKit(id);
-            const partnerId = this.props.match.params.id;
-            
-            if (this.currentUser) {
+            if (!this.currentUser) {
+                this.setState({
+                    error: "Could not connect."
+                })
+            } else  {
+                const partnerId = this.props.match.params.id;
                 this.roomId = await startChat(this.currentUser, partnerId);
                 this.currentUser.subscribeToRoomMultipart({
                     roomId: this.roomId,
@@ -77,7 +81,6 @@ class ChatRoom extends React.Component {
                     messageLimit: 20
                 });
                 //const partnerName = await getName(partnerId);
-                
             }
         }
 
@@ -177,9 +180,11 @@ class ChatRoom extends React.Component {
     }
 
     render() {
-        const { loading, messages, text, translated } = this.state;
+        const { loading, error, messages, text, translated } = this.state;
         
         if (loading) return <Loading />
+
+        if (error) return <Error message={error} />
 
         return (
             <ThemeProvider theme={purpleTheme}>
