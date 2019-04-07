@@ -1,24 +1,20 @@
 import React from 'reactn';
-import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
+
 import { withStyles } from '@material-ui/core/styles';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import { signUp } from '../services/dbAccess';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormLabel from '@material-ui/core/FormLabel';
+
+import { getLanguage, setUser } from '../services/dbAccess';
 
 import styles from '../styles';
+
+import Loading from './Loading';
 /*const styles = theme => ({
   container: {
     display: 'flex',
@@ -96,7 +92,7 @@ class SignIn extends React.Component {
                     gender,
                     country,
                 };
-                localStorage.setItem('user', JSON.stringify(user));
+                setUser(user);
                 this.setGlobal({ user });
                 this.props.history.push('/partners/');
             }
@@ -107,9 +103,9 @@ class SignIn extends React.Component {
     render() {
         const { classes } = this.props;
         const { name, age, country, loading } = this.state;
-        const marginLeft = document.documentElement.clientWidth / 2 - 15;
+        const language = getLanguage(this.global.code);
 
-        if (loading) return <CircularProgress style={{ marginLeft, marginTop: 50 }}/>
+        if (loading) return <Loading />
 
         return (
         <React.Fragment>
@@ -119,7 +115,7 @@ class SignIn extends React.Component {
             <form className={classes.container} noValidate autoComplete="off">
             <TextField
                 id="name"
-                label="Name"
+                label={language.name}
                 required
                 value={name}
                 className={classes.textField}
@@ -133,7 +129,7 @@ class SignIn extends React.Component {
             
             <TextField
                 id="country"
-                label="Country"
+                label={language.country}
                 required
                 value={country}
                 className={classes.textField}
@@ -148,7 +144,7 @@ class SignIn extends React.Component {
 
             <TextField
                 id="age"
-                label="Age"
+                label={language.age}
                 placeholder="Age"
                 value={age}
                 className={classes.textField}
@@ -167,8 +163,8 @@ class SignIn extends React.Component {
                     className={classes.group}
                     onChange={this.handleChange('gender')}
                 >
-                    <FormControlLabel value="Female" control={<Radio />} label="Female" />
-                    <FormControlLabel value="Male" control={<Radio />} label="Male" />
+                    <FormControlLabel value="Female" control={<Radio />} label={language.female} />
+                    <FormControlLabel value="Male" control={<Radio />} label={language.male} />
                 </RadioGroup>
             </FormControl>
             </form>
@@ -178,7 +174,7 @@ class SignIn extends React.Component {
                 color="primary"
                 style={{ margin: 8 }}
             >
-                Submit
+                {language.continue}
             </Button>
             </div>
             

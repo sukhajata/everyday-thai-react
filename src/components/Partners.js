@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 
 import Loading from './Loading';
 
-import { getPartners } from '../services/dbAccess';
+import { getPartners, getUser, translate } from '../services/dbAccess';
 
 const graphUrl = "https://graph.facebook.com/";
 
@@ -21,8 +21,8 @@ class Partners extends React.Component {
 
     async componentDidMount() {
         if (!this.global.user) {
-            if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
-                const user = JSON.parse(localStorage.getItem('user'));
+            const user = getUser();
+            if (user) {
                 this.setGlobal({
                     user
                 });
@@ -32,17 +32,23 @@ class Partners extends React.Component {
             }
         }
 
-        
         const results = await getPartners();
         this.setState({ 
             partners: results,
             loading: false,
         });
         
-        let partners = await this.getProfilePics(results);
+        const partners = await this.getProfilePics(results);
         this.setState({ 
             partners, 
         });
+
+        if(this.global.code === 'en') {
+            const updated = await this.translateDetails(partners);
+            this.setState({
+                partners: updated,
+            })
+        }
     }
 
     getProfilePics = users => {
@@ -51,6 +57,18 @@ class Partners extends React.Component {
             return {
                 ...item,
                 url: result.url,
+            }
+        });
+
+        return Promise.all(promises);
+    }
+
+    translateDetails = partners => {
+        const promises = partners.map(async partner => {
+            const province = await translate(partner.Province, 'en');
+            return {
+                ...partner,
+                Province: province,
             }
         });
 
@@ -91,7 +109,7 @@ class Partners extends React.Component {
                                 </Typography>
                             }
                                 <Typography variant="body1">
-                                    {partner.Province}
+                                    {partner.Province }
                                 </Typography>
                             </Grid>
                         </Grid>

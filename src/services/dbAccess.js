@@ -2,28 +2,25 @@ import low from 'lowdb';
 import LocalStorage from 'lowdb/adapters/LocalStorage';
 import data from './db';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client'
-import keys from '../keys';
+import { getGlobal } from 'reactn';
+import english from './en.translations';
+import thai from './th.translations';
+import API from './en.api';
+//import API from './th.api';
 
 const adapter = new LocalStorage('db');
 
 const db = low(adapter);
 const dbName = 'phrases';
 
-const api_base = "https://sukhajata.com/api/";
-const api_lessons = api_base + "lessons-th-en-graphql.php";
-const api_lesson = api_base + "lesson2-th-en.php";
-const api_slide_and_media = api_base + "slide-and-media-th-en.php";
-const api_songs = api_base + "songs-th-en.php";
-const api_partners = api_base + "thai-users.php";
-const api_add_user = api_base + "add-english-user.php";
-const api_get_questions = api_base + "get-questions.php";
-const api_add_chatkit_user = "https://peaceful-beyond-64504.herokuapp.com/create-user";
-const token_provider_url = "https://peaceful-beyond-64504.herokuapp.com/auth";
-const api_detect_language = `https://translation.googleapis.com/language/translate/v2/detect?key=${keys.GOOGLE_TRANSLATE_API_KEY}`;
-const api_translate = `https://translation.googleapis.com/language/translate/v2?key=${keys.GOOGLE_TRANSLATE_API_KEY}`;
-const tts = "https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&";
-//client=tw-ob
+//const tts = "https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&";
+
 //helpers
+export function getLanguage() {
+    const language = getGlobal().code === 'th' ? thai : english;
+    return language;
+}
+
 async function fetchJSON(url) {
     try {
         const response  = await fetch(url);
@@ -71,34 +68,34 @@ async function post(url, data) {
 
 //** api **/
 export async function getLessons() {
-    const lessonData = await fetchJSON(api_lessons);
+    const lessonData = await fetchJSON(API.LESSONS);
     return lessonData;
 }
 
 export async function getLesson(id) {
-    const lesson = await fetchJSON(api_lesson + "?id=" + id.toString());
+    const lesson = await fetchJSON(API.LESSON + "?id=" + id.toString());
     return lesson;
 }
 
 export async function getSlideAndMedia(slideId) {
-    const slide = await fetchJSON(api_slide_and_media + "?slideId=" + slideId.toString())
+    const slide = await fetchJSON(API.SLIDE_AND_MEDIA + "?slideId=" + slideId.toString())
     return slide;
 }
 
 export async function getSongs() {
-    const songData = await fetchJSON(api_songs);
+    const songData = await fetchJSON(API.SONGS);
     return songData;
 }
 
 export async function getPartners() {
-    const users = await fetchJSON(api_partners);
+    const users = await fetchJSON(API.PARTNERS);
     return users;
 }
 
 export async function signUp(data) {
-    const result = await post(api_add_user, data);
+    const result = await post(API.ADD_USER, data);
     if (result) {
-        const response = await fetchJSON(api_add_chatkit_user + "?name=" + data.name + "&id=" + result.id);
+        const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + data.name + "&id=" + data.facebookId);
         if (!response.name) {
             console.log(response);
             alert("error");
@@ -111,7 +108,7 @@ export async function signUp(data) {
 export async function connectToChatKit(userId) {
     try {
         const tokenProvider = new TokenProvider({
-            url: token_provider_url,
+            url: API.TOKEN_PROVIDER_URL,
             queryParams: {
                 userId
             },
@@ -133,12 +130,40 @@ export async function connectToChatKit(userId) {
 
 export async function startChat(currentUser, partnerId) {
     try {
+        const result = await fetchJSON(API.GET_ROOM);
+        if (result.roomId > 0) {
+            return result.roomId;
+        }
+
         const room = await currentUser.createRoom({
             name: Date.now().toString(),
             private: true,
             addUserIds: [partnerId],
         });
-        return room;
+
+        const data = {
+            englishUserId: currentUser.id,
+            thaiUserId: partnerId,
+            roomId: room.id
+        }
+        await post(API.ADD_ROOM, data);
+        return room.id;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+export async function getRooms(id) {
+    const q = getGlobal().code === 'th' ? '?thaiUserId=' + id : '?englishUserId=' + id;
+    const rooms = await fetchJSON(API.GET_ROOMS + q);
+    return rooms;
+}
+
+export async function getMessages(currentUser, roomId) {
+    try {
+        const messages = await currentUser.fetchMultipartMessages({ roomId });
+        return messages;
     } catch (error) {
         console.log(error);
         return false;
@@ -151,11 +176,11 @@ export async function sendMessage(currentUser, roomId, text) {
             roomId,
             text,
         });
-        const partner = await connectToChatKit('woeful');
+        /*const partner = await connectToChatKit('woeful');
         await partner.sendSimpleMessage({ 
             roomId, 
             text: "ช่วยบอกรายได้ของคุณให้ฉันฟังได้ไหม"
-        });
+        });*/
         return result;
     } catch (error) {
         console.log(error);
@@ -166,7 +191,7 @@ export async function sendMessage(currentUser, roomId, text) {
 export async function detectLanguage(text) {
     try {
         const result = await post(
-            api_detect_language, { 
+            API.DETECT_LANGUAGE, { 
                 q: [text], 
             }
         );
@@ -177,12 +202,12 @@ export async function detectLanguage(text) {
     }
 }
 
-export async function translate(text) {
+export async function translate(text, code) {
     try {
         const result = await post(
-            api_translate, { 
+            API.TRANSLATE, { 
                 q: [text],
-                target: "en" 
+                target: code
             }
         );
         if (result.data) {
@@ -195,41 +220,6 @@ export async function translate(text) {
     }
 }
 
-export async function translateToThai(text) {
-    try {
-        const result = await post(
-            api_translate, { 
-                q: [text],
-                target: "th" 
-            }
-        );
-        if (result.data) {
-            return result.data.translations[0].translatedText;
-        } 
-        return false;
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
-}
-
-export async function translateToEnglish(text) {
-    try {
-        const result = await post(
-            api_translate, { 
-                q: [text],
-                target: "en" 
-            }
-        );
-        if (result.data) {
-            return result.data.translations[0].translatedText;
-        } 
-        return false;
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
-}
 
 export function textToSpeechThai(text) {
     try {
@@ -252,7 +242,7 @@ export function textToSpeechThai(text) {
 }
 
 export async function getQuestions() {
-    const result = await fetchJSON(api_get_questions);
+    const result = await fetchJSON(API.GET_QUESTIONS);
     return result;
 }
 
@@ -275,13 +265,24 @@ function loadData() {
     db.set(dbName, newArray).write();
 }
 
+export function getUser() {
+    if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        return user;
+    }
+    return null;
+}
+
+export function setUser(user) {
+    localStorage.setItem('user', JSON.stringify(user));
+}
+
 export async function getCategories() {
     let categories;
     if (localStorage.getItem('categories') !== null) {
         categories = JSON.parse(localStorage.getItem('categories'));
     } else {
-        const url = 'https://sukhajata.com/el/catsub.php?lanId=3';
-        categories = await fetchJSON(url);
+        categories = await fetchJSON(API.CAT_SUB);
         localStorage.setItem('categories', JSON.stringify(categories));
     }
     return categories;

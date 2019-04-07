@@ -8,17 +8,17 @@ import VolumeUp from '@material-ui/icons/VolumeUp';
 
 import Loading from './Loading';
 
-import { ThemeProvider, darkTheme, purpleTheme, elegantTheme } from '@livechat/ui-kit';
+import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
 
 import { 
     translate, 
-    translateToThai, 
-    translateToEnglish,
     textToSpeechThai,  
     connectToChatKit, 
     startChat, 
     sendMessage, 
-    getQuestions 
+    getQuestions, 
+    getMessages,
+    getName,
 } from '../services/dbAccess';
 
 import {
@@ -29,9 +29,6 @@ import {
 	MessageList,
 	Message,
 	MessageText,
-	AgentBar,
-	Title,
-	Subtitle,
 	MessageGroup,
 	MessageButtons,
 	MessageButton,
@@ -49,6 +46,7 @@ import {
 	CloseIcon,
 	Column,
 } from '@livechat/ui-kit';
+import { getDisplayName } from 'recompose';
 
 
 class ChatRoom extends React.Component {
@@ -58,6 +56,7 @@ class ChatRoom extends React.Component {
         loading: true,
         text: '',
         translated: '',
+        partnerName: '',
     }
     
     componentDidMount = async () => {
@@ -66,38 +65,19 @@ class ChatRoom extends React.Component {
         } else {
             const id = this.global.user.id;
             this.currentUser = await connectToChatKit(id);
+            const partnerId = this.props.match.params.id;
+            
             if (this.currentUser) {
-                this.room = await startChat(this.currentUser, 'woeful');
+                this.roomId = await startChat(this.currentUser, partnerId);
                 this.currentUser.subscribeToRoomMultipart({
-                    roomId: this.room.id,
+                    roomId: this.roomId,
                     hooks: {
-                        onMessage: message => {
-                            const content = message.parts[0].payload.content;
-                            console.log(message.createdAt);
-                            const msg = {
-                                id: message.id,
-                                text: content,
-                                senderId: message.senderId,
-                                date: message.createdAt,
-                            };
-                            const messages =  [
-                                ...this.state.messages,
-                                msg,
-                            ];
-                            
-                            this.setState({
-                                messages,
-                            });
-                            if (message.senderId == this.currentUser.id) {
-                                this.translateTextToThai(message.id, content);
-                            } else {
-                                this.translateTextToEnglish(message.id, content);
-                            }
-                            
-                      }
+                        onMessage: this.messageAdded
                     },
-                    messageLimit: 10
-                  })
+                    messageLimit: 20
+                });
+                //const partnerName = await getName(partnerId);
+                
             }
         }
 
@@ -105,13 +85,6 @@ class ChatRoom extends React.Component {
             loading: false,
         })
     }
-
-
-    /*send = async (text) => {
-        if (this.currentUser && this.room) {
-            await sendMessage(this.currentUser, this.room.id, text);
-        }
-    }*/
 
     sendMessage = async () => {
         const { text } = this.state;
@@ -121,14 +94,37 @@ class ChatRoom extends React.Component {
             translated: '',
         })
         
-        if (this.currentUser && this.room) {
-            await sendMessage(this.currentUser, this.room.id, text);
+        if (this.currentUser && this.roomId) {
+            await sendMessage(this.currentUser, this.roomId, text);
+        }
+    }
+
+    messageAdded = message => {
+        const content = message.parts[0].payload.content;
+        const msg = {
+            id: message.id,
+            text: content,
+            senderId: message.senderId,
+            date: message.createdAt,
+        };
+        const messages =  [
+            ...this.state.messages,
+            msg,
+        ];
+        
+        this.setState({
+            messages,
+        });
+        if (message.senderId === this.currentUser.id) {
+            this.translateText(message.id, content, "th");
+        } else {
+            this.translateText(message.id, content, "en");
         }
     }
 
     onTextChanged = async ({ target }) => {
         this.setState({ text: target.value });
-        const translated = await translateToThai(target.value);
+        const translated = await translate(target.value, "th");
         if (translated) {
             //check if message has been sent already
             if (this.state.text.length > 1) {
@@ -146,23 +142,8 @@ class ChatRoom extends React.Component {
         } 
     }
 
-    handleClickTranslate = async (messageId, text) => {
-        const result = await translate(text);
-        if (result) {
-            const messages = this.state.messages.map(message => {
-                if (message.id === messageId) {
-                    message.translation = result;
-                }
-                return message;
-            });
-            this.setState({
-                messages,
-            })
-        }
-    }
-
-    translateTextToThai = async (messageId, text) => {
-        const translated = await translateToThai(text);
+    translateText = async (messageId, text, code) => {
+        const translated = await translate(text, code);
         const messages = this.state.messages.map(message => {
             if (message.id === messageId) {
                 message.translation = translated;
@@ -174,21 +155,9 @@ class ChatRoom extends React.Component {
         })
     }
 
-    translateTextToEnglish = async (messageId, text) => {
-        const translated = await translateToEnglish(text);
-        const messages = this.state.messages.map(message => {
-            if (message.id === messageId) {
-                message.translation = translated;
-            }
-            return message;
-        });
-        this.setState({
-            messages,
-        })
-    }
 
     handleClickPlay = message => {
-        if (message.senderId == this.currentUser.id) {
+        if (message.senderId === this.currentUser.id) {
             textToSpeechThai(message.translation);
         } else {
             textToSpeechThai(message.text);
@@ -281,6 +250,7 @@ class ChatRoom extends React.Component {
                                         padding: 5,
                                         marginBottom: 10, 
                                     }}
+                                    placeholder="EN"
                                     value={text}
                                     onChange={this.onTextChanged}
                                     onKeyUp={this.onKeyUp}

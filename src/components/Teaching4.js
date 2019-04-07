@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'reactn';
 
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
@@ -12,6 +12,7 @@ import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
 import Sound from 'react-sound';
+import { getLanguage } from '../services/dbAccess';
 
 class Teaching4 extends React.Component { 
 
@@ -48,6 +49,7 @@ class Teaching4 extends React.Component {
     render() {
         const { classes, slide, moveNextSlide } = this.props;
         const { mediaPlaying } = this.state;
+        const language = getLanguage(this.global.code);
         const audioUrl = "https://sukhajata.com/audio/thai/female/";
 
         return (
@@ -114,7 +116,7 @@ class Teaching4 extends React.Component {
                     className={classes.navigation}
                     onClick={() => moveNextSlide(1)}
                 >
-                    Continue
+                    {language.continue}
                 </Button>
                 
             </React.Fragment>

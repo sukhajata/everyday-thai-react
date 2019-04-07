@@ -1,9 +1,7 @@
-import React from 'react';
+import React from 'reactn';
 
-import Paper from '@material-ui/core/Paper';
 import Chip from '@material-ui/core/Chip';
 import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
 
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
@@ -11,6 +9,7 @@ import styles from '../styles';
 import AudioPrompt from './AudioPrompt';
 
 import { shuffle } from '../services/helpers';
+import { getLanguage } from '../services/dbAccess';
 
 class Translate9 extends React.Component {
 
@@ -109,6 +108,7 @@ class Translate9 extends React.Component {
     render() {
         const { slide, classes } = this.props;
         const { target, chipsUpper, chipsLower, completed } = this.state;
+        const language = getLanguage(this.global.code);
 
         return (
             <React.Fragment>
@@ -141,7 +141,7 @@ class Translate9 extends React.Component {
                     disabled={!completed}
                     onClick={this.handleButtonClick}
                 >
-                Continue
+                {language.continue}
                 </Button>
             </React.Fragment>
     
