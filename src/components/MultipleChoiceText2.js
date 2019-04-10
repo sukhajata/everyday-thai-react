@@ -1,17 +1,19 @@
 import React from 'react';
 
 import MultiChoiceSlide from './MultiChoiceSlide';
+import settings from '../config/settings';
 
 export default function MultipleChoiceText2 ({ slide, target, moveNextSlide }) { 
+    const english = settings.firstLanguage === 'en';
 
     return (
         <MultiChoiceSlide
             slide={slide}
-            labelUpper={target.thai}
-            labelLower={target.phonetic}
-            extra={slide.english}
+            labelUpper={english ? target.thai : target.english}
+            labelLower={english ? target.phonetic : ''}
+            extra={english ? slide.english : ''}
             moveNextSlide={moveNextSlide}
-            upperText="english"
+            upperText={english ? "english" : "thai"}
         />            
     )
     

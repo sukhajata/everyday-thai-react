@@ -7,10 +7,12 @@ import Chip from '@material-ui/core/Chip';
 
 import styles from '../styles';
 import { withStyles } from '@material-ui/core/styles';
+import { getLanguage } from '../services/dbAccess';
 
 const Totals = ({ classes, history, match }) => {
     
     const [ score, setScore ] = useGlobal('score');
+    const language = getLanguage();
     let result = '';
     if (!score) {
         history.push('/lessons/' + match.params.id);
@@ -21,7 +23,7 @@ const Totals = ({ classes, history, match }) => {
     return (
         <div style={{ margin: 40, textAlign: 'center' }}>
             <Typography variant="h6">
-                You did better than expected.
+                {language.wellDone}
             </Typography>
             <Chip 
                 className={classes.totals}
@@ -31,7 +33,7 @@ const Totals = ({ classes, history, match }) => {
                 className={classes.navigation}
                 onClick={() => history.push('/lessons/')}
             >
-            Continue
+            {language.continue}
             </Button>
         </div>
     )

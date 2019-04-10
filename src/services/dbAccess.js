@@ -1,23 +1,24 @@
 import low from 'lowdb';
 import LocalStorage from 'lowdb/adapters/LocalStorage';
-import data from './db';
+//import data from './db';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client'
-import { getGlobal } from 'reactn';
+import { getGlobal, setGlobal } from 'reactn';
 import english from './en.translations';
 import thai from './th.translations';
-import API from './en.api';
-//import API from './th.api';
+import api_en from './en.api';
+import api_th from './th.api';
+import settings from '../config/settings';
 
+const API = settings.firstLanguage === 'en' ? api_en : api_th;
 const adapter = new LocalStorage('db');
-
 const db = low(adapter);
-const dbName = 'phrases';
+const dbName = settings.dbName;
 
 //const tts = "https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&";
 
 //helpers
 export function getLanguage() {
-    const language = getGlobal().code === 'th' ? thai : english;
+    const language = settings.firstLanguage === 'th' ? thai : english;
     return language;
 }
 
@@ -87,6 +88,11 @@ export async function getSongs() {
     return songData;
 }
 
+export async function getSong(id) {
+    const data = await fetchJSON(API.SONG + "?lessonId=" + id);
+    return data;
+}
+
 export async function getPartners() {
     const users = await fetchJSON(API.PARTNERS);
     return users;
@@ -130,8 +136,13 @@ export async function connectToChatKit(userId) {
 
 export async function startChat(currentUser, partnerId) {
     try {
-        const result = await fetchJSON(API.GET_ROOM);
-        if (result.roomId > 0) {
+        const english = settings.firstLanguage === 'en';
+        const englishUserId = english ? currentUser.id : partnerId;
+        const thaiUserId = english ? partnerId : currentUser.id;
+        
+        const result = await fetchJSON(API.GET_ROOM + "?englishUserId=" + englishUserId + "&thaiUserId=" + thaiUserId);
+        if (result.roomId && result.roomId > 0) {
+            console.log("existing room");
             return result.roomId;
         }
 
@@ -141,6 +152,9 @@ export async function startChat(currentUser, partnerId) {
             addUserIds: [partnerId],
         });
 
+        if (!room.id) {
+            throw new Error(room);
+        }
         const data = {
             englishUserId: currentUser.id,
             thaiUserId: partnerId,
@@ -155,7 +169,7 @@ export async function startChat(currentUser, partnerId) {
 }
 
 export async function getRooms(id) {
-    const q = getGlobal().code === 'th' ? '?thaiUserId=' + id : '?englishUserId=' + id;
+    const q = settings.firstLanguage === 'th' ? '?thaiUserId=' + id : '?englishUserId=' + id;
     const rooms = await fetchJSON(API.GET_ROOMS + q);
     return rooms;
 }
@@ -220,6 +234,17 @@ export async function translate(text, code) {
     }
 }
 
+export function textToSpeechEnglish(text) {
+   if (window.speechSynthesis) {
+        const synth = window.speechSynthesis;
+        //const voices = synth.getVoices();
+        const utterance = new SpeechSynthesisUtterance(text);
+        //utterance.voice = voices.find(voice => voice.lang === 'en-US');
+        synth.speak(utterance);
+    } else {
+        window.responsiveVoice.speak(text, "US Female", {rate: 0.7});
+    }
+}
 
 export function textToSpeechThai(text) {
     try {
@@ -233,7 +258,7 @@ export function textToSpeechThai(text) {
             utterance.voice = voices.find(voice => voice.lang === 'hi-IN');
             synth.speak(utterance);
         }*/
-        window.responsiveVoice.speak(text, "Thai Female", {rate: 0.7});
+        window.responsiveVoice.speak(text, "Thai Female", {rate: 0.8});
 
     } catch (error) {
         console.log(error);
@@ -247,33 +272,53 @@ export async function getQuestions() {
 }
 
 //** local data **/
-export function dbSetup() {
+export async function dbSetup() {
     //load voices
     if (window.speechSynthesis) {
         const synth = window.speechSynthesis;
         synth.getVoices();
     }
     if (db.get(dbName).isEmpty().value()) {
-        db.defaults({phrases: []})
-            .write();
-        loadData();
+        let defaults = {};
+        defaults[dbName] = [];
+        db.defaults(defaults).write();
+        await loadData();
     } 
 }
 
-function loadData() {
+async function loadData() {
+    const data = await fetchJSON(API.PHRASES);
     const newArray = db.get(dbName).concat(data).value();
     db.set(dbName, newArray).write();
 }
 
-export function getUser() {
-    if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
-        const user = JSON.parse(localStorage.getItem('user'));
+export async function getUser(facebookId) {
+    if (getGlobal().user) {
+        const user = getGlobal().user;
         return user;
     }
+    
+    if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        setGlobal({
+            user: user[0],
+        })
+        return user[0];
+    }
+
+    if (facebookId) {
+        const user = await fetchJSON(API.GET_USER + "?facebookId=" + facebookId);
+        setUser(user);
+        return user;
+    }
+    
     return null;
 }
 
 export function setUser(user) {
+    setGlobal({
+        user,
+    })
     localStorage.setItem('user', JSON.stringify(user));
 }
 
@@ -289,16 +334,19 @@ export async function getCategories() {
 }
 
 export function getSubCategory(sid) {
-    //console.log("reading from local storage");
+    
     return db.get(dbName)
             .filter({ subCategoryId: sid })
             .value();
+    /*const results = fetchJSON(API.SUBCATEGORY + "?id=" + sid);
+    console.log(results);
+    return results;*/
 }
 
 
 export function searchDb(txt) {
     const reg = new RegExp('(\\b)' + txt.toLowerCase() + '(\\b)', 'g');
-    return db.get('phrases')
+    return db.get(dbName)
             .filter(function(item) { 
                 return item.firstLanguage.toLowerCase().match(reg); 
             })

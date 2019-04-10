@@ -7,6 +7,7 @@ import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
 import { shuffle } from '../services/helpers';
+import settings from '../config/settings';
 
 class MultiChoiceSlide extends React.Component { 
 
@@ -74,6 +75,7 @@ class MultiChoiceSlide extends React.Component {
                 <React.Fragment>
                     <AudioPrompt 
                         audioFileName={slide.audioFileName}
+                        textToSpeak={labelUpper}
                         instructions={slide.instructions}
                         labelUpper={labelUpper}
                         labelLower={labelLower}

@@ -9,6 +9,7 @@ import MoodBad from '@material-ui/icons/MoodBad';
 import AudioPrompt from './AudioPrompt';
 
 import { shuffle } from '../services/helpers';
+import settings from '../config/settings';
 
 class MultipleChoiceImage1 extends React.Component { 
 
@@ -69,14 +70,16 @@ class MultipleChoiceImage1 extends React.Component {
     render() {
         const { classes, slide, imageUrl, target  } = this.props;
         const { images } = this.state;
-        
+        const english = settings.firstLanguage === 'en';
+
         return (
             <React.Fragment>
                 <AudioPrompt 
                     audioFileName={slide.audioFileName}
+                    textToSpeak={english ? target.thai : target.english}
                     instructions={slide.instructions}
-                    labelUpper={target.thai}
-                    labelLower={target.phonetic}
+                    labelUpper={english ? target.thai : target.english}
+                    labelLower={english ? target.phonetic : ''}
                 />
                 <table className={classes.imageTable} align="center">
                     <tbody>

@@ -4,6 +4,7 @@ export default {
     songs: "Songs",
     favourites: "Favourites",
     languagePartner: "Language partner",
+    shareDetails: "Please share a few details",
     title: "Everyday Thai",
     continue: "Continue",
     age: "Age",
@@ -11,4 +12,6 @@ export default {
     name: "Name",
     female: "Female",
     male: "Male",
+    wellDone: "You're not as dumb as I look.",
+    cannot: "I can't",
 }

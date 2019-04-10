@@ -8,8 +8,9 @@ import styles from '../styles';
 
 import AudioPrompt from './AudioPrompt';
 
-import { shuffle } from '../services/helpers';
-import { getLanguage } from '../services/dbAccess';
+import { shuffle, checkCase, ucFirst } from '../services/helpers';
+import { getLanguage, textToSpeechThai, textToSpeechEnglish } from '../services/dbAccess';
+import settings from '../config/settings';
 
 class Translate9 extends React.Component {
 
@@ -75,7 +76,11 @@ class Translate9 extends React.Component {
         
         if (slide.medias[currentOrder]) {
             const target = slide.medias[currentOrder];
-        
+            if (settings.firstLanguage === 'en') {
+                textToSpeechThai(target.thai);
+            } else {
+                textToSpeechEnglish(target.english);
+            }
             this.setState({ 
                 chipsUpper, 
                 chipsLower,
@@ -108,31 +113,41 @@ class Translate9 extends React.Component {
     render() {
         const { slide, classes } = this.props;
         const { target, chipsUpper, chipsLower, completed } = this.state;
-        const language = getLanguage(this.global.code);
+        const language = getLanguage();
+        const english = settings.firstLanguage === 'en';
 
         return (
             <React.Fragment>
                 <AudioPrompt 
                     audioFileName={slide.audioFileName}
                     instructions={slide.instructions}
-                    labelUpper={slide.english}
+                    labelUpper={english ? slide.english : slide.thai}
+                    textToSpeak={english ? slide.thai : slide.english}
                 />
+                <div 
+                    style={{
+                        visibility: completed ? "visible" : "hidden",
+                        marginBottom: 10
+                    }}
+                >
+                    {english ? slide.thai : slide.english}
+                </div>
                 {chipsUpper.map(item =>
-                    <Chip key={item.id}
+                    <Chip key={item.mediaOrder}
                         className={item.className}
                         variant="outlined"
-                        label={item.thai + ' ' + item.phonetic}
+                        label={english ? item.thai + ' ' + item.phonetic : checkCase(item.english)}
                     />
                 )}
                 <div style={{ marginTop: 10, marginBottom: 10}} >
                 {chipsLower.map((item, idx) => 
-                    <Chip key={item.id}
+                    <Chip key={item.mediaOrder}
                         className={item.className}
-                        onClick={item.thai === target.thai ? 
+                        onClick={item.thai === target.thai || item.english === target.english ? 
                             () => this.selectCorrectWord(item.mediaOrder) 
                             : () => this.selectWrongWord(item.mediaOrder)
                         }
-                        label={item.thai + ' ' + item.phonetic}
+                        label={english ? item.thai + ' ' + item.phonetic : checkCase(item.english)}
                     />
                 )}
                 </div>

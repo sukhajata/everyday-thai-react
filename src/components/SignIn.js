@@ -5,59 +5,45 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
-import { signUp } from '../services/dbAccess';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import { getLanguage, setUser } from '../services/dbAccess';
+import { getLanguage, signUp, setUser, getUser } from '../services/dbAccess';
+import settings from '../config/settings';
 
 import styles from '../styles';
 
 import Loading from './Loading';
-/*const styles = theme => ({
-  container: {
-    display: 'flex',
-    flexWrap: 'wrap',SVGLinearGradientElement,
-  },
-  textField: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-    width: 200,
-  },
-  dense: {
-    marginTop: 19,
-  },
-  formControl: {
-    margin: theme.spacing.unit,
-  },
-  group: {
-    margin: `${theme.spacing.unit}px 0`,
-  },
-  menu: {
-    width: 200,
-  },
-});
-*/
+import Error from './Error';
+
 class SignIn extends React.Component {
+
     state = {
         name: '',
+        facebookId: null,
         age: '',
         country: '',
+        province: '',
         gender: '',
         labelWidth: 0,
         loading: false,
         error: null,
-    };
+    }
 
-    componentDidMount = () => {
-        const { user } = this.global;
-        if (!user) {
+    componentDidMount = async () => {
+        const { facebookId, name } = this.props.match.params;
+        if (!facebookId) {
             this.props.history.push('/login/');
         } else {
             this.setState({
-                name: user.name,
-            })
+                facebookId,
+                name,
+            });
+            const user = await getUser(facebookId);
+            if (user) {
+                this.props.history.push('/partners/');
+            }
         }
     }
 
@@ -66,8 +52,8 @@ class SignIn extends React.Component {
     };
 
     onFormSubmit = async () => {
-        const { name, age, gender, country } = this.state;
-        if (name.length > 1 && country.length > 1 && age.length > 0) {
+        const { name, age, gender, country, province, facebookId } = this.state;
+        if (name.length > 1 && age.length > 0) {
             this.setState({
                 loading: true,
             });
@@ -76,7 +62,8 @@ class SignIn extends React.Component {
                 age,
                 gender,
                 country,
-                facebookId: this.global.user.facebookId,
+                province,
+                facebookId,
             };
             const result = await signUp(data);
 
@@ -86,104 +73,117 @@ class SignIn extends React.Component {
                 });
             } else {
                 const user = {
-                    ...this.global.user,
+                    ...data,
                     id: result.id,
-                    age,
-                    gender,
-                    country,
                 };
                 setUser(user);
-                this.setGlobal({ user });
                 this.props.history.push('/partners/');
             }
            
         }   
     }
-    
+
     render() {
         const { classes } = this.props;
-        const { name, age, country, loading } = this.state;
-        const language = getLanguage(this.global.code);
+        const { loading, error, name, province, country, age } = this.state;
+        const language = getLanguage();
 
         if (loading) return <Loading />
 
-        return (
-        <React.Fragment>
-            <Typography variant="body1" style={{ margin: 20, marginTop: 80 }}>
-                Please share a few details.
-            </Typography>
-            <form className={classes.container} noValidate autoComplete="off">
-            <TextField
-                id="name"
-                label={language.name}
-                required
-                value={name}
-                className={classes.textField}
-                margin="normal"
-                placeholder="Name"
-                onChange={this.handleChange('name')}
-                InputLabelProps={{
-                shrink: true,
-                }}
-            />
-            
-            <TextField
-                id="country"
-                label={language.country}
-                required
-                value={country}
-                className={classes.textField}
-                fullWidth
-                margin="normal"
-                placeholder="Country"
-                onChange={this.handleChange('country')}
-                InputLabelProps={{
-                shrink: true,
-                }}
-            />
+        if (error) return <Error message={error} />
 
-            <TextField
-                id="age"
-                label={language.age}
-                placeholder="Age"
-                value={age}
-                className={classes.textField}
-                type="number"
-                fullWidth
-                margin="normal"
-                onChange={this.handleChange('age')}
-                InputLabelProps={{
+        return (
+            <React.Fragment>
+                <Typography variant="body1" style={{ margin: 20, marginTop: 80 }}>
+                    {language.shareDetails}
+                </Typography>
+                <form className={classes.container} noValidate autoComplete="off">
+                <TextField
+                    id="name"
+                    label={language.name}
+                    required
+                    value={name}
+                    className={classes.textField}
+                    margin="normal"
+                    placeholder={language.name}
+                    onChange={this.handleChange('name')}
+                    InputLabelProps={{
                     shrink: true,
-                }}
-            />
-            <FormControl component="fieldset" className={classes.formControl}>
-                <RadioGroup
-                    aria-label="Gender"
-                    name="gender"
-                    className={classes.group}
-                    onChange={this.handleChange('gender')}
-                >
-                    <FormControlLabel value="Female" control={<Radio />} label={language.female} />
-                    <FormControlLabel value="Male" control={<Radio />} label={language.male} />
-                </RadioGroup>
-            </FormControl>
-            </form>
-            <div><Button 
-                onClick={this.onFormSubmit}
-                variant="contained"
-                color="primary"
-                style={{ margin: 8 }}
-            >
-                {language.continue}
-            </Button>
-            </div>
+                    }}
+                />
+                {settings.firstLanguage === 'th' &&
+                <TextField
+                    id="province"
+                    label="จังหวัด"
+                    required
+                    value={province}
+                    className={classes.textField}
+                    fullWidth
+                    margin="normal"
+                    placeholder="จังหวัด"
+                    onChange={this.handleChange('country')}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
+                }
+                {settings.firstLanguage === 'en' &&
+                <TextField
+                    id="country"
+                    label={language.country}
+                    required
+                    value={country}
+                    className={classes.textField}
+                    fullWidth
+                    margin="normal"
+                    placeholder={language.country}
+                    onChange={this.handleChange('country')}
+                    InputLabelProps={{
+                    shrink: true,
+                    }}
+                />
+                }
+                <TextField
+                    id="age"
+                    label={language.age}
+                    placeholder={language.age}
+                    value={age}
+                    className={classes.textField}
+                    type="number"
+                    fullWidth
+                    margin="normal"
+                    onChange={this.handleChange('age')}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                />
+                <FormControl component="fieldset" className={classes.formControl}>
+                    <RadioGroup
+                        aria-label="Gender"
+                        name="gender"
+                        className={classes.group}
+                        onChange={this.handleChange('gender')}
+                    >
+                        <FormControlLabel value="Female" control={<Radio />} label={language.female} />
+                        <FormControlLabel value="Male" control={<Radio />} label={language.male} />
+                    </RadioGroup>
+                </FormControl>
+                </form>
+                <div>
+                    <Button 
+                        onClick={this.onFormSubmit}
+                        variant="contained"
+                        color="primary"
+                        style={{ margin: 8 }}
+                    >
+                        {language.continue}
+                    </Button>
+                </div>
             
-        
-        </React.Fragment>
-        );
+            </React.Fragment>
+        )
     }
 }
-
-
+   
 
 export default withStyles(styles)(SignIn);

@@ -10,33 +10,20 @@ import Typography from '@material-ui/core/Typography';
 import Sound from 'react-sound';
 
 import Favorite from '@material-ui/icons/Favorite';
-//import favourite from '../img/ic_favourite.png';
-//import favouriteActive from '../img/ic_favourite_active.png';
-//import play from '../img/ic_play1.png';
-//import playing from '../img/ic_playing.png';
 import PlayCircleOutline from '@material-ui/icons/PlayCircleOutline';
 import PauseCircleOutline from '@material-ui/icons/PauseCircleOutline';
 
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
+import settings from '../config/settings';
 
-import { toggleFavourite } from '../services/dbAccess';
+import { toggleFavourite, textToSpeechEnglish } from '../services/dbAccess';
 
 class PhraseList extends React.Component {
   
   state = {
     phrases: [],
   }
-
-  /*componentDidMount = () => {
-    const phrases = this.props.phrases.map(phrase => {
-      return {
-        ...phrase,
-        playingStatus: Sound.status.STOPPED,
-      }
-    });
-    this.setState({ phrases });
-  }*/
 
   static getDerivedStateFromProps(nextProps, prevState) {
     if (nextProps.phrases.length > 0) {
@@ -55,17 +42,21 @@ class PhraseList extends React.Component {
     return null;
   }
 
-  speak = (pid) => {
-    const phrases = this.state.phrases.map(phrase => {
-      if (phrase.pid === pid) {
-        phrase.playingStatus = Sound.status.PLAYING;
-      } else {
-        phrase.playingStatus = Sound.status.STOPPED;
-      }
-      return phrase;
-    });
-      
-    this.setState ({ phrases }); 
+  speak = (pid, text) => {
+    if (settings.firstLanguage === 'en') {
+      const phrases = this.state.phrases.map(phrase => {
+        if (phrase.pid === pid) {
+          phrase.playingStatus = Sound.status.PLAYING;
+        } else {
+          phrase.playingStatus = Sound.status.STOPPED;
+        }
+        return phrase;
+      });
+        
+      this.setState ({ phrases }); 
+    } else if (settings.firstLanguage === 'th') {
+      textToSpeechEnglish(text);
+    }
    
   }
 
@@ -97,7 +88,7 @@ class PhraseList extends React.Component {
   render() {
     const { classes } = this.props;
     const { phrases } = this.state;
-    const audioUrl = "https://sukhajata.com/audio/thai/";
+    const audioUrl = settings.audioUrl;
     const voice = "F";
 
     return (
@@ -114,28 +105,39 @@ class PhraseList extends React.Component {
 
           return (
             <ListItem className={classes.white} button key={phrase.pid}>
+            {settings.firstLanguage === 'en' &&
             <Sound 
               url={fileName}
               playStatus={phrase.playingStatus}
               onFinishedPlaying={() => this.onFinishedSpeaking(phrase.pid)}
             />
+            }
             <Card className={classes.full}>
               <CardContent>
                 <Typography variant="body1" >
                   {phrase.firstLanguage}
                 </Typography>
+                {settings.firstLanguage === 'th' &&
                 <Typography variant="body1"  color="textSecondary">
-                  {phrase.thai_F}
+                  {phrase.secondLanguage}
                 </Typography>
+                }
+                {settings.firstLanguage === 'en' &&
+                <Typography variant="body1"  color="textSecondary">
+                  {voice === 'F' ? phrase.thai_F : phrase.thai_M}
+                </Typography>
+                }
+                {settings.firstLanguage === 'en' &&
                 <Typography variant="body1" >
-                  {phrase.romanisation_F}
+                  {phrase.romanisation}
                 </Typography>
-                {phrase.literalTranslation && 
+                }
+                {settings.firstLanguage === 'en' && phrase.literalTranslation && 
                   <Typography variant="body1"  color="textSecondary">
                     {phrase.literalTranslation}
                   </Typography>
                 }
-                {phrase.notes && 
+                {settings.firstLanguage === 'en' && phrase.notes && 
                   <Typography className={classes.notes}>
                     {phrase.notes}
                   </Typography>
@@ -144,7 +146,7 @@ class PhraseList extends React.Component {
                   <Grid item >
                     {phrase.playingStatus === Sound.status.STOPPED &&
                       <PlayCircleOutline
-                        onClick={() => this.speak(phrase.pid)}
+                        onClick={() => this.speak(phrase.pid, phrase.secondLanguage)}
                         className={classes.playIcon}
                       />
                     }

@@ -18,6 +18,12 @@ export default {
       width: '100%',
       background: green[500],
       color: '#fff',
+      marginBottom: 10
+    },
+    cheat: {
+      width: '100%',
+      background: red[500],
+      color: '#fff',
     },
     choiceButton1: {
       width: '100%',

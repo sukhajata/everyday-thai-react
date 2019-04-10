@@ -7,6 +7,7 @@ import VolumeUp from '@material-ui/icons/VolumeUp';
 
 import Loading from './Loading';
 import Error from './Error';
+import { getUser } from '../services/dbAccess';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
 
@@ -61,11 +62,13 @@ class ChatRoom extends React.Component {
     }
     
     componentDidMount = async () => {
-        if (!this.global.user) {
+        const user = await getUser();
+        if (!user) {
             this.props.history.push('/');
         } else {
-            const id = this.global.user.id;
-            this.currentUser = await connectToChatKit(id);
+            
+            this.currentUser = await connectToChatKit(user.facebookId);
+            
             if (!this.currentUser) {
                 this.setState({
                     error: "Could not connect."

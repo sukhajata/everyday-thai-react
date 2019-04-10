@@ -10,64 +10,103 @@ import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
+import settings from '../config/settings';
 
 import Sound from 'react-sound';
-import { getLanguage } from '../services/dbAccess';
+import { getLanguage, textToSpeechEnglish, textToSpeechThai } from '../services/dbAccess';
 
 class Teaching4 extends React.Component { 
 
     state = {
-        mediaPlaying: null,
+        cards: [],
     }
 
-    componentDidMount() {
+    static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.slide.id !== prevState.slideId) {
+            const { classes, slide } = nextProps;
+            let cards = [];
+            slide.medias.forEach(media => {
+                cards.push({
+                    ...media,
+                    className: classes.playIcon,
+                })
+            });
+            
+            return {
+                cards,
+                slideId: nextProps.slide.id,
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /*componentDidMount() {
         let mediaPlaying = {};
         this.props.slide.medias.forEach(media => {
             mediaPlaying[media.id] = Sound.status.STOPPED;
         });
         this.setState({ mediaPlaying })
-    }
+    }*/
 
-    playSound = id => {
-        let mediaPlaying = {...this.state.mediaPlaying};
+    playSound = media => {
+        if (settings.firstLanguage === 'th') {
+            textToSpeechEnglish(media.english);
+        } else {
+            textToSpeechThai(media.thai);
+        }
+        const cards = this.state.cards.map(card => {
+            if (card.id === media.id) {
+                card.className = this.props.classes.playingIcon;
+            }
+            return card;
+        });
+        this.setState({ cards });
+
+        setTimeout(this.stopSound(media.id), 2000);
+        /*let mediaPlaying = {...this.state.mediaPlaying};
         for (let key in mediaPlaying) {
-            if (key === id) {
+            if (key === media.id) {
                 mediaPlaying[key] = Sound.status.PLAYING;
             } else {
                 mediaPlaying[key] = Sound.status.STOPPED;
             }
         }
         this.setState({ mediaPlaying });
+
+        setTimeout(this.stopSound(media.id), 500);*/
     }
 
     stopSound = id => {
-        let mediaPlaying = {...this.state.mediaPlaying};
+        const cards = this.state.cards.map(card => {
+            return {
+                ...card,
+                className: this.props.classes.playIcon,
+            }
+        });
+        this.setState({ cards });
+        /*let mediaPlaying = {...this.state.mediaPlaying};
         mediaPlaying[id] = Sound.status.STOPPED;
-        this.setState({ mediaPlaying });
+        this.setState({ mediaPlaying });*/
     }
 
     render() {
         const { classes, slide, moveNextSlide } = this.props;
-        const { mediaPlaying } = this.state;
-        const language = getLanguage(this.global.code);
-        const audioUrl = "https://sukhajata.com/audio/thai/female/";
+        const { cards } = this.state;
+        const language = getLanguage();
+        const english = settings.firstLanguage === 'en'
+//        const audioUrl = "https://sukhajata.com/audio/thai/female/";
 
         return (
             <React.Fragment>
                 <Typography variant="body1">
-                    {slide.english}
+                    {english ? slide.english : slide.thai}
                 </Typography>
-                {mediaPlaying && slide.medias.map(media => (
+                {cards && cards.map(media => (
                     <Card key={media.id}
                         className={classes.defaultCard}
                     >
                         <CardContent>
-                            <Sound 
-                                url={audioUrl + "f2_5.mp3"}
-                                playStatus={mediaPlaying[media.id]}
-                                onFinishedPlaying={() => this.stopSound(media.id)}
-                                onError={(errorCode, description) => console.log(description)}
-                            />
                             <Grid 
                                 container 
                                 direction="column"
@@ -75,13 +114,15 @@ class Teaching4 extends React.Component {
                             >
                                 <Grid item>
                                     <Typography variant="body1">
-                                        {media.thai}
+                                        {english ? media.thai : media.english}
                                     </Typography>
+                                    {settings.firstLanguage === 'en' &&
                                     <Typography variant="body1">
                                         {media.phonetic}
                                     </Typography>
+                                    }
                                     <Typography variant="body1" color="primary">
-                                        {media.english}
+                                        {english ? media.english : media.thai}
                                     </Typography>
                                     {media.literalTranslation && 
                                         <Typography variant="body1" color="textSecondary">
@@ -94,17 +135,9 @@ class Teaching4 extends React.Component {
                                         </Typography>
                                     }
                                     <PlayArrowIcon 
-                                        onClick={
-                                            mediaPlaying[media.id] === Sound.status.PLAYING ?
-                                            () => this.stopSound(media.id) :
-                                            () => this.playSound(media.id)
-                                        }
+                                        onClick={() => this.playSound(media)}
                                         fontSize="small" 
-                                        className={
-                                            mediaPlaying[media.id] === Sound.status.PLAYING ?
-                                            classes.playingIcon :
-                                            classes.playIcon
-                                        }
+                                        className={media.className}
                                     />
                                 </Grid>
                             </Grid>
@@ -118,10 +151,21 @@ class Teaching4 extends React.Component {
                 >
                     {language.continue}
                 </Button>
-                
             </React.Fragment>
         )
     }
 }
 
 export default withStyles(styles)(Teaching4);
+/*                          <Sound 
+                                url={audioUrl + "f2_5.mp3"}
+                                playStatus={mediaPlaying[media.id]}
+                                onFinishedPlaying={() => this.stopSound(media.id)}
+                                onError={(errorCode, description) => console.log(description)}
+                            />
+                             onClick={
+                                            mediaPlaying[media.id] === Sound.status.PLAYING ?
+                                            () => this.stopSound(media.id) :
+                                            () => this.playSound(media)
+                                        }
+                            */

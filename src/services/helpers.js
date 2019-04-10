@@ -19,3 +19,14 @@ export function  shuffle (arr) {
 
     return array;
 }
+
+export function checkCase(word) {
+    if (word === "I" || word === "I'm" || word === "I've") {
+        return word;
+    }
+    return word.toLowerCase();
+}
+
+export function ucFirst(text) {
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}

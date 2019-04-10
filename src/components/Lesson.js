@@ -9,11 +9,13 @@ import MissingWord3 from './MissingWord3';
 import Teaching4 from './Teaching4';
 import MatchingPairsText6 from './MatchingPairsText6';
 import Translate9 from './Translate9';
+import MatchingPairsImage11 from './MatchingPairsImage11';
+import Writing14 from './Writing14';
+import Bingo15 from './Bingo15';
 import Listening18 from './Listening18';
 
 import Stars from './Stars';
 import styles from '../styles';
-import { Typography } from '@material-ui/core';
 
 import { getLesson, getSlideAndMedia } from '../services/dbAccess';
 
@@ -42,7 +44,6 @@ class Lesson extends React.Component {
 
     async updateSlideData() {
         const currentSlide = await getSlideAndMedia(this.global.lesson.slides[this.currentOrder - 1].id);
-        
         let target = currentSlide.medias.find(item => item.isTarget === "1");
         
         this.setState({ 
@@ -129,6 +130,26 @@ class Lesson extends React.Component {
                         <Translate9
                             slide={currentSlide}
                             moveNextSlide={this.moveNextSlide}
+                        />
+                    }
+                    {currentSlide.categoryId === '11' &&
+                        <MatchingPairsImage11
+                            slide={currentSlide}
+                            moveNextSlide={this.moveNextSlide}
+                            imageUrl={imageUrl}
+                        />
+                    }
+                    {currentSlide.categoryId === '14' &&
+                        <Writing14
+                            slide={currentSlide}
+                            moveNextSlide={this.moveNextSlide}
+                        />
+                    }
+                    {currentSlide.categoryId === '15' &&
+                        <Bingo15
+                            slide={currentSlide}
+                            moveNextSlide={this.moveNextSlide}
+                            target={target}
                         />
                     }
                     {currentSlide.categoryId === '18' &&

@@ -8,6 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import Loading from './Loading';
 
 import { getPartners, getUser, translate } from '../services/dbAccess';
+import settings from '../config/settings';
 
 const graphUrl = "https://graph.facebook.com/";
 
@@ -20,40 +21,33 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
-        if (!this.global.user) {
-            const user = getUser();
-            if (user) {
-                this.setGlobal({
-                    user
-                });
-                //console.log(user);
-            } else {
-                this.props.history.push('/login/');
+        const user = await getUser();
+        if (!user) {
+            this.props.history.push('/login/');
+        } else {
+            const results = await getPartners();
+            this.setState({ 
+                partners: results,
+                loading: false,
+            });
+            
+            const partnersWithPics = await this.getProfilePics(results);
+            this.setState({ 
+                partners: partnersWithPics
+            });
+
+            if(settings.firstLanguage === 'en') {
+                const translated = await this.translateDetails(partnersWithPics);
+                this.setState({
+                    partners: translated,
+                })
             }
-        }
-
-        const results = await getPartners();
-        this.setState({ 
-            partners: results,
-            loading: false,
-        });
-        
-        const partners = await this.getProfilePics(results);
-        this.setState({ 
-            partners, 
-        });
-
-        if(this.global.code === 'en') {
-            const updated = await this.translateDetails(partners);
-            this.setState({
-                partners: updated,
-            })
         }
     }
 
     getProfilePics = users => {
         const promises = users.map(async item => {
-            const result = await fetch(graphUrl + item.FacebookId + '/picture?height=100');    
+            const result = await fetch(graphUrl + item.facebookId + '/picture?height=100');    
             return {
                 ...item,
                 url: result.url,
@@ -65,10 +59,10 @@ class Partners extends React.Component {
 
     translateDetails = partners => {
         const promises = partners.map(async partner => {
-            const province = await translate(partner.Province, 'en');
+            const province = await translate(partner.province, 'en');
             return {
                 ...partner,
-                Province: province,
+                province,
             }
         });
 
@@ -82,14 +76,15 @@ class Partners extends React.Component {
 
     render() {
         const { partners, loading } = this.state;
-        
+        const english = settings.firstLanguage === 'en';
+
         if (loading) return <Loading />
 
         return (
             <React.Fragment>
             {partners.map(partner => 
-                <Card key={partner.Id} style={{ margin: 20 }}>
-                    <CardContent onClick={() => this.chat(partner.Id)}>
+                <Card key={partner.id} style={{ margin: 20 }}>
+                    <CardContent onClick={() => this.chat(partner.facebookId)}>
                         <Grid container spacing={16} >
                         {partner.url &&
                             <Grid item>
@@ -101,15 +96,15 @@ class Partners extends React.Component {
                         }
                             <Grid item>
                                 <Typography variant="body1">
-                                    {partner.Name}
+                                    {partner.name}
                                 </Typography>
-                            {partner.Age > 0 &&
+                            {partner.age > 0 &&
                                 <Typography variant="body1">
-                                    {partner.Age}
+                                    {partner.age}
                                 </Typography>
                             }
                                 <Typography variant="body1">
-                                    {partner.Province }
+                                    {english ? partner.province : partner.country}
                                 </Typography>
                             </Grid>
                         </Grid>

@@ -56,21 +56,29 @@ class PhraseBookMenu extends React.Component {
 
     getIcon = categoryName => {
         switch(categoryName) {
-            case 'Basics': 
+            case 'Basics':
+            case 'พื้นฐาน': 
                 return <Accessibility />
             case 'Grammar':
+            case 'ไวยากรณ์':
                 return <LocalLibrary />
             case 'Shopping':
+            case 'ช้อปปิ้ง':
                 return <ShoppingCart />
             case 'Food & Accommodation':
+            case 'อาหารและที่พัก':
                 return <Hotel />
             case 'Getting Around':
+            case 'ขนส่ง':
                 return <DirectionsBus />
             case 'People & Communication' :
+            case 'คนและการสื่อสาร':
                 return <People />
             case 'Culture & Leisure':
+            case 'วัฒนธรรมและเวลาว่าง':
                 return <BeachAccess />
             case 'Other':
+            case 'อื่น ๆ':
                 return <LocalHospital />
             default:
                 return null;

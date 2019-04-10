@@ -7,7 +7,7 @@ import { ChatFeed, Message } from 'react-chat-ui'
 
 import Loading from './Loading';
 
-import { connectToChatKit, startChat, sendMessage } from '../services/dbAccess';
+import { connectToChatKit, startChat, sendMessage, getUser } from '../services/dbAccess';
 
 class ChatRoom extends React.Component {
     
@@ -18,10 +18,12 @@ class ChatRoom extends React.Component {
     }
     
     componentDidMount = async () => {
-        if (!this.global.user) {
+        const user = await getUser();
+        if (!user) {
             this.props.history.push('/');
         } else {
-            const id = this.global.user.id;
+            alert(user.id);
+            const id = user.id;
             this.currentUser = await connectToChatKit(id)
             if (this.currentUser) {
                 this.room = await startChat(this.currentUser, 'woeful');
@@ -29,7 +31,6 @@ class ChatRoom extends React.Component {
                     roomId: this.room.id,
                     hooks: {
                         onMessage: message => {
-                            console.log(message);
                             const msg = {
                                 id: message.id,
                                 message: message.parts[0].payload.content,

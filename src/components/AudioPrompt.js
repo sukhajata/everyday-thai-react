@@ -1,19 +1,37 @@
 import React from 'react';
 
-import Grid from '@material-ui/core/Grid';
 import VolumeUpIcon from '@material-ui/icons/VolumeUp';
-import IconButton from '@material-ui/core/IconButton';
+import { Typography } from '@material-ui/core';
 
 import Sound from 'react-sound';
 
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
-import { Typography } from '@material-ui/core';
+import settings from '../config/settings';
+import { textToSpeechEnglish, textToSpeechThai } from '../services/dbAccess';
 
 class AudioPrompt extends React.Component{
     state = {
         playingStatus: Sound.status.PLAYING,
+        textToSpeak: '',
     }
+
+    static getDerivedStateFromProps(nextProps, prevState) {
+        if (nextProps.textToSpeak !== prevState.textToSpeak) {
+            if (settings.firstLanguage === 'en') {
+                textToSpeechThai(nextProps.textToSpeak);
+            } else {
+                textToSpeechEnglish(nextProps.textToSpeak);
+            }    
+            return {
+                textToSpeak: nextProps.textToSpeak,
+            }
+        } 
+        
+        return null;
+        
+    }
+
 
     onFinishedSpeaking = () => {
         this.setState ({
@@ -21,7 +39,17 @@ class AudioPrompt extends React.Component{
         });
     }
 
+    playSound = () => {
+        if (settings.firstLanguage === 'en') {
+            textToSpeechThai(this.props.textToSpeak);
+        } else {
+            textToSpeechEnglish(this.props.textToSpeak);
+        }
+    }
+    
     handleClickPlay = () => {
+        this.playSound();
+
         this.setState({
             playingStatus: Sound.status.PLAYING,
         });
@@ -30,20 +58,18 @@ class AudioPrompt extends React.Component{
     render() {
         const { classes, instructions, audioFileName, labelUpper, labelLower, extra } = this.props; 
         const { playingStatus } = this.state;
-        const audioUrl = "https://sukhajata.com/audio/thai/female/";
+        const audioUrl = settings.audioUrl;
         
         return (
         <React.Fragment>
             <table>
-                <Sound 
-                    url={audioUrl + audioFileName}
-                    playStatus={playingStatus}
-                    onFinishedPlaying={this.onFinishedSpeaking}
-                />
                 <tbody>
                     <tr>
                         <td>
-                            <VolumeUpIcon onClick={this.handleClickPlay} className={playingStatus === Sound.status.PLAYING ? classes.playingIcon : classes.playIcon}/>
+                            <VolumeUpIcon 
+                                onClick={this.handleClickPlay} 
+                                className={playingStatus === Sound.status.PLAYING ? classes.playingIcon : classes.playIcon}
+                            />
                         </td>
                         <td>
                             <Typography variant="body1" style={{paddingTop: 5, paddingBottom: 5 }}>{instructions}</Typography>
@@ -67,5 +93,9 @@ class AudioPrompt extends React.Component{
 
 export default withStyles(styles)(AudioPrompt);
 /*
- 
+ <Sound 
+                    url={audioUrl + audioFileName}
+                    playStatus={playingStatus}
+                    onFinishedPlaying={this.onFinishedSpeaking}
+                />
                     */

@@ -25,19 +25,12 @@ import Login from './components/Login';
 import Partners from './components/Partners';
 import SignIn from './components/SignIn';
 import PartnerChat from './components/PartnerChat';
+import Song from './components/Song';
 
 import theme from './theme';
 import styles from './styles';
 
 class App extends Component {
-
-  constructor(props) {
-    super(props);
-    
-    this.setGlobal({
-      code: 'en',
-    });
-  }
 
   async componentDidMount() {    
     await dbSetup();
@@ -95,7 +88,7 @@ class App extends Component {
                 path="/songs/:id"
                 render={ props => 
                   <ContentWithNavBar {...props}>
-                    <SubCategory {...props} />
+                    <Song {...props} />
                   </ContentWithNavBar>
                 }
               />
@@ -142,7 +135,7 @@ class App extends Component {
                 }
               />
               <Route
-                path="/signin"
+                path="/signin/:facebookId/:name"
                 render={props => 
                   <ContentWithNavBar {...props}>
                     <SignIn {...props} />

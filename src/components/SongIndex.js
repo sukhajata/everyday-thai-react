@@ -32,7 +32,7 @@ class SongIndex extends React.Component{
                         <Link to={song.id} className={classes.listLink}>
                             <CardContent>
                                 <Typography variant="h6">{song.c_name}</Typography>
-                                <Typography variant="body1">{song.thai}</Typography>
+                                {song.thai && <Typography variant="body1">{song.thai}</Typography>}
                             </CardContent>
                         </Link>
                     </Card>

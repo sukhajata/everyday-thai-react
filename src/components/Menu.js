@@ -17,9 +17,10 @@ import { Link } from "react-router-dom";
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
-
+import { getLanguage } from '../services/dbAccess';
 
 const Menu = ({ classes, handleClick }) => {
+    const language = getLanguage();
 
     return (
         <div className={classes.list}>
@@ -27,34 +28,34 @@ const Menu = ({ classes, handleClick }) => {
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><Translate color="primary"/></ListItemIcon>
                 <Link className={classes.listLink} to="/phrase-book/">
-                    <ListItemText primary="Phrase Book"/> 
+                    <ListItemText primary={language.phraseBook}/> 
                 </Link>
             </ListItem>
             <Divider/>
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><ImportContacts color="primary"/></ListItemIcon>
                 <Link className={classes.listLink} to="/lessons/">
-                    <ListItemText primary="Lessons"/>
+                    <ListItemText primary={language.lessons}/>
                 </Link>
             </ListItem>
             <Divider/>
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><LibraryMusic color="primary"/></ListItemIcon>
                 <Link className={classes.listLink} to="/songs/">
-                    <ListItemText primary="Songs"/> 
+                    <ListItemText primary={language.songs}/> 
                 </Link>
             </ListItem>
             <Divider/>
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><Favorite color="error"/></ListItemIcon>
                 <Link className={classes.listLink} to="/favourites/">
-                    <ListItemText primary="Favourites"/> 
+                    <ListItemText primary={language.favourites}/> 
                 </Link>
             </ListItem>
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><Forum color="primary"/></ListItemIcon>
                 <Link className={classes.listLink} to="/partners/">
-                    <ListItemText primary="Language partner"/> 
+                    <ListItemText primary={language.languagePartner}/> 
                 </Link>
             </ListItem>
     
