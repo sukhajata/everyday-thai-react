@@ -301,8 +301,9 @@ export async function getUser(email) {
         return user;
     }
     
-    if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
-        const user = JSON.parse(localStorage.getItem('user'));
+    if (localStorage.getItem('everydayUser') !== undefined && localStorage.getItem('everydayUser') !== null) {
+        const user = JSON.parse(localStorage.getItem('everydayUser'));
+        if (user.facebookId)
         setGlobal({
             user: user,
         })
@@ -322,7 +323,7 @@ export function setUser(user) {
     setGlobal({
         user,
     })
-    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('everydayUser', JSON.stringify(user));
 }
 
 export async function getCategories() {
