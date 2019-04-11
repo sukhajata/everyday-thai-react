@@ -9,5 +9,4 @@ export default {
     audioUrl: 'https://sukhajata.com/audio/thai/',
     songUrl: 'https://sukhajata.com/audio/thai/songs/',
     dbName: 'phrases',
-    appId: '304315070251764',
 }

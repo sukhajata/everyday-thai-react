@@ -21,7 +21,6 @@ import SearchResults from './components/SearchResults';
 import Favourites from './components/Favourites';
 import Totals from './components/Totals';
 import Menu from './components/Menu';
-import Login from './components/Login';
 import Partners from './components/Partners';
 import SignIn from './components/SignIn';
 import PartnerChat from './components/PartnerChat';
@@ -127,15 +126,7 @@ class App extends Component {
                 }
               />
               <Route
-                path="/login/"
-                render={props => 
-                  <ContentWithNavBar {...props}>
-                    <Login {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/signin/:facebookId/:name"
+                path="/signin/"
                 render={props => 
                   <ContentWithNavBar {...props}>
                     <SignIn {...props} />

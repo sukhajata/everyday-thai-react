@@ -94,18 +94,21 @@ export async function getSong(id) {
 }
 
 export async function getPartners() {
-    const users = await fetchJSON(API.PARTNERS);
+    const users = await fetchJSON(API.PARTNERS + "?firstLanguage=" + settings.firstLanguage);
     return users;
 }
 
 export async function signUp(data) {
     const result = await post(API.ADD_USER, data);
     if (result) {
-        const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + data.name + "&id=" + data.facebookId);
+        const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + data.name + "&id=" + result.id);
         if (!response.name) {
             console.log(response);
             alert("error");
         }
+    } else {
+        console.log(result);
+        alert("error");
     }
     return result;
 }
@@ -292,7 +295,7 @@ async function loadData() {
     db.set(dbName, newArray).write();
 }
 
-export async function getUser(facebookId) {
+export async function getUser(email) {
     if (getGlobal().user) {
         const user = getGlobal().user;
         return user;
@@ -301,14 +304,14 @@ export async function getUser(facebookId) {
     if (localStorage.getItem('user') !== undefined && localStorage.getItem('user') !== null) {
         const user = JSON.parse(localStorage.getItem('user'));
         setGlobal({
-            user: user[0],
+            user: user,
         })
-        return user[0];
+        return user;
     }
 
-    if (facebookId) {
-        const user = await fetchJSON(API.GET_USER + "?facebookId=" + facebookId);
-        setUser(user);
+    if (email) {
+        const user = await fetchJSON(API.GET_USER + "?email=" + email);
+        setUser(user[0]);
         return user;
     }
     

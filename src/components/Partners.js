@@ -23,7 +23,7 @@ class Partners extends React.Component {
     async componentDidMount() {
         const user = await getUser();
         if (!user) {
-            this.props.history.push('/login/');
+            this.props.history.push('/signin/');
         } else {
             const results = await getPartners();
             this.setState({ 

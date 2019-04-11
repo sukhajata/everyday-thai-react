@@ -21,7 +21,7 @@ class SignIn extends React.Component {
 
     state = {
         name: '',
-        facebookId: null,
+        email: '',
         age: '',
         country: '',
         province: '',
@@ -31,28 +31,12 @@ class SignIn extends React.Component {
         error: null,
     }
 
-    componentDidMount = async () => {
-        const { facebookId, name } = this.props.match.params;
-        if (!facebookId) {
-            this.props.history.push('/login/');
-        } else {
-            this.setState({
-                facebookId,
-                name,
-            });
-            const user = await getUser(facebookId);
-            if (user) {
-                this.props.history.push('/partners/');
-            }
-        }
-    }
-
     handleChange = name => event => {
         this.setState({ [name]: event.target.value });
     };
 
     onFormSubmit = async () => {
-        const { name, age, gender, country, province, facebookId } = this.state;
+        const { name, age, email, gender, country, province } = this.state;
         if (name.length > 1 && age.length > 0) {
             this.setState({
                 loading: true,
@@ -60,10 +44,11 @@ class SignIn extends React.Component {
             const data = {
                 name,
                 age,
+                email,
                 gender,
                 country,
                 province,
-                facebookId,
+                firstLanguage: settings.firstLanguage,
             };
             const result = await signUp(data);
 
@@ -85,7 +70,7 @@ class SignIn extends React.Component {
 
     render() {
         const { classes } = this.props;
-        const { loading, error, name, province, country, age } = this.state;
+        const { loading, error, name, email, province, country, age } = this.state;
         const language = getLanguage();
 
         if (loading) return <Loading />
@@ -108,7 +93,20 @@ class SignIn extends React.Component {
                     placeholder={language.name}
                     onChange={this.handleChange('name')}
                     InputLabelProps={{
-                    shrink: true,
+                        shrink: true,
+                    }}
+                />
+                 <TextField
+                    id="email"
+                    label={language.email}
+                    required
+                    value={email}
+                    className={classes.textField}
+                    margin="normal"
+                    placeholder={language.email}
+                    onChange={this.handleChange('email')}
+                    InputLabelProps={{
+                        shrink: true,
                     }}
                 />
                 {settings.firstLanguage === 'th' &&
@@ -139,7 +137,7 @@ class SignIn extends React.Component {
                     placeholder={language.country}
                     onChange={this.handleChange('country')}
                     InputLabelProps={{
-                    shrink: true,
+                        shrink: true,
                     }}
                 />
                 }

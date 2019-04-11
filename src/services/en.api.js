@@ -9,7 +9,7 @@ export default {
     LESSON: API_BASE + "lesson2-th-en.php",
     SLIDE_AND_MEDIA: API_BASE + "slide-and-media-th-en.php",
     SONGS: API_BASE + "songs-th-en.php",
-    PARTNERS: API_BASE + "thai-users.php",
+    PARTNERS: API_BASE + "english-users.php",
     GET_USER: API_BASE + "english-users.php",
     ADD_USER: API_BASE + "add-english-user.php",
     ADD_ROOM: API_BASE + "add-room.php",
