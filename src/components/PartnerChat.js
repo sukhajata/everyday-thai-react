@@ -15,7 +15,8 @@ import settings from '../config/settings';
 
 import { 
     translate, 
-    textToSpeechThai,  
+    textToSpeechThai,
+    textToSpeechEnglish,  
     connectToChatKit, 
     startChat, 
     sendMessage, 
@@ -67,7 +68,7 @@ class ChatRoom extends React.Component {
             this.props.history.push('/');
         } else {
             
-            this.currentUser = await connectToChatKit(user.facebookId);
+            this.currentUser = await connectToChatKit(user.id);
             
             if (!this.currentUser) {
                 this.setState({
@@ -176,11 +177,18 @@ class ChatRoom extends React.Component {
 
 
     handleClickPlay = message => {
-        if (message.senderId === this.currentUser.id) {
-            if (settings)
-            textToSpeechThai(message.translation);
+        if (english) {
+            if (message.senderId === this.currentUser.id) {
+                textToSpeechThai(message.translation);
+            } else {
+                textToSpeechThai(message.text);
+            }
         } else {
-            textToSpeechThai(message.text);
+            if (message.senderId === this.currentUser.id) {
+                textToSpeechEnglish(message.translation);
+            } else {
+                textToSpeechEnglish(message.text);
+            }
         }
     }
 
@@ -223,7 +231,7 @@ class ChatRoom extends React.Component {
                             <Message key={message.id} date={this.getLocalDateTime(message.date)} isOwn={message.senderId == this.currentUser.id} >
                                 <Bubble isOwn={message.senderId === this.currentUser.id}>
                                     <MessageText style={{ 
-                                        fontSize: message.senderId === this.currentUser.id ? 14 : 18,
+                                        fontSize: 16,
                                         padding: 8,
                                         minWidth: 100,
                                     }}>
@@ -233,7 +241,7 @@ class ChatRoom extends React.Component {
                                     <MessageText style={{ 
                                         padding: 8,
                                         minWidth: 100,
-                                        fontSize: message.senderId === this.currentUser.id ? 18 : 14,
+                                        fontSize: 16,
                                     }}>
                                         {message.translation}
                                     </MessageText>

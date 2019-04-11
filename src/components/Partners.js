@@ -10,8 +10,7 @@ import Loading from './Loading';
 import { getPartners, getUser, translate } from '../services/dbAccess';
 import settings from '../config/settings';
 
-const graphUrl = "https://graph.facebook.com/";
-
+const english = settings.firstLanguage === 'en';
 
 class Partners extends React.Component {
 
@@ -30,45 +29,35 @@ class Partners extends React.Component {
                 partners: results,
                 loading: false,
             });
-            
-            const partnersWithPics = await this.getProfilePics(results);
-            this.setState({ 
-                partners: partnersWithPics
-            });
 
-            if(settings.firstLanguage === 'en') {
-                const translated = await this.translateDetails(partnersWithPics);
-                this.setState({
-                    partners: translated,
-                })
-            }
+            const translated = await this.translateDetails(results);
+            this.setState({
+                partners: translated,
+                loading: false,
+            })
         }
-    }
-
-    getProfilePics = users => {
-        const promises = users.map(async item => {
-            const result = await fetch(graphUrl + item.facebookId + '/picture?height=100');    
-            return {
-                ...item,
-                url: result.url,
-            }
-        });
-
-        return Promise.all(promises);
     }
 
     translateDetails = partners => {
         const promises = partners.map(async partner => {
-            const province = await translate(partner.province, 'en');
-            return {
-                ...partner,
-                province,
+            if (english) {
+                const province = await translate(partner.province, 'en');
+                return {
+                    ...partner,
+                    province,
+                }
+            } else {
+                const country = await translate(partner.country, 'th');
+                return {
+                    ...partner,
+                    country,
+                }
             }
+            
         });
 
         return Promise.all(promises);
     }
-
 
     chat = async partnerId => {
         this.props.history.push('/chat/' + partnerId);
@@ -84,7 +73,7 @@ class Partners extends React.Component {
             <React.Fragment>
             {partners.map(partner => 
                 <Card key={partner.id} style={{ margin: 20 }}>
-                    <CardContent onClick={() => this.chat(partner.facebookId)}>
+                    <CardContent onClick={() => this.chat(partner.id)}>
                         <Grid container spacing={16} >
                         {partner.url &&
                             <Grid item>

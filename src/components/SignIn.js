@@ -119,7 +119,7 @@ class SignIn extends React.Component {
                     fullWidth
                     margin="normal"
                     placeholder="จังหวัด"
-                    onChange={this.handleChange('country')}
+                    onChange={this.handleChange('province')}
                     InputLabelProps={{
                         shrink: true,
                     }}

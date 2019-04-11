@@ -3,8 +3,8 @@ import LocalStorage from 'lowdb/adapters/LocalStorage';
 //import data from './db';
 import { ChatManager, TokenProvider } from '@pusher/chatkit-client'
 import { getGlobal, setGlobal } from 'reactn';
-import english from './en.translations';
-import thai from './th.translations';
+import lan_english from './en.translations';
+import lan_thai from './th.translations';
 import api_en from './en.api';
 import api_th from './th.api';
 import settings from '../config/settings';
@@ -13,12 +13,14 @@ const API = settings.firstLanguage === 'en' ? api_en : api_th;
 const adapter = new LocalStorage('db');
 const db = low(adapter);
 const dbName = settings.dbName;
+const english = settings.firstLanguage === 'en';
+const userKey = english ? 'englishUser' : 'thaiUser';
 
 //const tts = "https://translate.google.com/translate_tts?client=tw-ob&ie=UTF-8&";
 
 //helpers
 export function getLanguage() {
-    const language = settings.firstLanguage === 'th' ? thai : english;
+    const language = settings.firstLanguage === 'th' ? lan_thai : lan_english;
     return language;
 }
 
@@ -94,17 +96,20 @@ export async function getSong(id) {
 }
 
 export async function getPartners() {
-    const users = await fetchJSON(API.PARTNERS + "?firstLanguage=" + settings.firstLanguage);
+    const firstLanguage = settings.firstLanguage === 'en' ? 'th' : 'en';
+    const users = await fetchJSON(API.PARTNERS + "?firstLanguage=" + firstLanguage);
     return users;
 }
 
 export async function signUp(data) {
     const result = await post(API.ADD_USER, data);
     if (result) {
-        const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + data.name + "&id=" + result.id);
-        if (!response.name) {
-            console.log(response);
-            alert("error");
+        if (result.notification != 2) { //user already exists
+            const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + data.name + "&id=" + result.id);
+            if (!response.name) {
+                console.log(response);
+                alert("error");
+            }
         }
     } else {
         console.log(result);
@@ -139,7 +144,6 @@ export async function connectToChatKit(userId) {
 
 export async function startChat(currentUser, partnerId) {
     try {
-        const english = settings.firstLanguage === 'en';
         const englishUserId = english ? currentUser.id : partnerId;
         const thaiUserId = english ? partnerId : currentUser.id;
         
@@ -159,8 +163,8 @@ export async function startChat(currentUser, partnerId) {
             throw new Error(room);
         }
         const data = {
-            englishUserId: currentUser.id,
-            thaiUserId: partnerId,
+            englishUserId,
+            thaiUserId,
             roomId: room.id
         }
         await post(API.ADD_ROOM, data);
@@ -301,8 +305,8 @@ export async function getUser(email) {
         return user;
     }
     
-    if (localStorage.getItem('everydayUser') !== undefined && localStorage.getItem('everydayUser') !== null) {
-        const user = JSON.parse(localStorage.getItem('everydayUser'));
+    if (localStorage.getItem(userKey) !== undefined && localStorage.getItem(userKey) !== null) {
+        const user = JSON.parse(localStorage.getItem(userKey));
         if (user.facebookId)
         setGlobal({
             user: user,
@@ -323,7 +327,7 @@ export function setUser(user) {
     setGlobal({
         user,
     })
-    localStorage.setItem('everydayUser', JSON.stringify(user));
+    localStorage.setItem(userKey, JSON.stringify(user));
 }
 
 export async function getCategories() {
