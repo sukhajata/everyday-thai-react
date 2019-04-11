@@ -8,6 +8,7 @@ import lan_thai from './th.translations';
 import api_en from './en.api';
 import api_th from './th.api';
 import settings from '../config/settings';
+import { htmlDecode } from './helpers';
 
 const API = settings.firstLanguage === 'en' ? api_en : api_th;
 const adapter = new LocalStorage('db');
@@ -232,7 +233,7 @@ export async function translate(text, code) {
             }
         );
         if (result.data) {
-            return result.data.translations[0].translatedText;
+            return htmlDecode(result.data.translations[0].translatedText);
         } 
         return false;
     } catch (error) {
@@ -242,11 +243,12 @@ export async function translate(text, code) {
 }
 
 export function textToSpeechEnglish(text) {
+    console.log("speaking english");
    if (window.speechSynthesis) {
         const synth = window.speechSynthesis;
-        //const voices = synth.getVoices();
+        const voices = synth.getVoices();
         const utterance = new SpeechSynthesisUtterance(text);
-        //utterance.voice = voices.find(voice => voice.lang === 'en-US');
+        utterance.voice = voices.find(voice => voice.lang === 'en-US');
         synth.speak(utterance);
     } else {
         window.responsiveVoice.speak(text, "US Female", {rate: 0.7});

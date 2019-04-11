@@ -30,3 +30,10 @@ export function checkCase(word) {
 export function ucFirst(text) {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+export function htmlDecode(input){
+    var e = document.createElement('textarea');
+    e.innerHTML = input;
+    // handle case of empty input
+    return e.childNodes.length === 0 ? "" : e.childNodes[0].nodeValue;
+}

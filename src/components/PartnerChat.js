@@ -101,7 +101,7 @@ class ChatRoom extends React.Component {
             translated: '',
         })
         
-        if (this.currentUser && this.roomId) {
+        if (text.length > 1 && this.currentUser && this.roomId) {
             await sendMessage(this.currentUser, this.roomId, text);
         }
     }
@@ -305,7 +305,11 @@ class ChatRoom extends React.Component {
                                     />
                                     <VolumeUp
                                         color="primary"
-                                        onClick={() =>textToSpeechThai(translated)}
+                                        onClick={
+                                            english ?
+                                            () => textToSpeechThai(translated) :
+                                            () => textToSpeechEnglish(translated)
+                                        }
                                     />
                                 </Fill>
                             </Row>
