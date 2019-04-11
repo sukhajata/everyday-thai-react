@@ -68,7 +68,7 @@ class Translate9 extends React.Component {
         });
         
         const chipsUpper = this.state.chipsUpper.map(item => {
-            if (item.mediaOrder == order) {
+            if (item.mediaOrder == currentOrder) {
                 item.className = classes.upperChip;
             }
             return item;

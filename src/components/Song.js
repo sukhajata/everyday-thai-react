@@ -72,19 +72,24 @@ class Song extends React.Component {
     render() {
         const { phrases } = this.state;
         const { classes } = this.props;
+        const english = settings.firstLanguage === 'en';
 
         return (
             <List>
                 {phrases && phrases.map(phrase => 
                     <ListItem className={classes.white} button key={phrase.pid}>
                         <Sound 
-                            url={settings.songUrl + phrase.fileName_F + '.mp3'}
+                            url={
+                                english ? 
+                                settings.songUrl + phrase.fileName_F + '.mp3' :
+                                settings.songUrl + phrase.audioFileName
+                            }
                             playStatus={phrase.playingStatus}
                             onFinishedPlaying={() => this.onFinishedSpeaking(phrase.pid)}
                         />
                         <Card className={classes.full}>
                             <CardContent>
-                            {settings.firstLanguage === 'th' &&
+                            {!english &&
                                 <>
                                     <Typography variant="body1">
                                         {phrase.secondLanguage}
@@ -94,7 +99,7 @@ class Song extends React.Component {
                                     </Typography>
                                 </>
                             }
-                            {settings.firstLanguage === 'en' &&
+                            {english &&
                                 <>
                                     <Typography variant="body1">
                                         {phrase.thai_F}

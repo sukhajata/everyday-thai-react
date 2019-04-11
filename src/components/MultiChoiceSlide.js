@@ -6,7 +6,7 @@ import AudioPrompt from './AudioPrompt';
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
-import { shuffle } from '../services/helpers';
+import { shuffle, checkCase } from '../services/helpers';
 import settings from '../config/settings';
 
 class MultiChoiceSlide extends React.Component { 
@@ -66,7 +66,7 @@ class MultiChoiceSlide extends React.Component {
     }
 
     render() {
-        const { slide, labelUpper, labelLower, extra, upperText, lowerText } = this.props;
+        const { slide, labelUpper, labelLower, textToSpeak, extra, upperText, lowerText } = this.props;
         const { cards } = this.state;
 
         return (
@@ -75,7 +75,7 @@ class MultiChoiceSlide extends React.Component {
                 <React.Fragment>
                     <AudioPrompt 
                         audioFileName={slide.audioFileName}
-                        textToSpeak={labelUpper}
+                        textToSpeak={textToSpeak}
                         instructions={slide.instructions}
                         labelUpper={labelUpper}
                         labelLower={labelLower}
@@ -87,7 +87,7 @@ class MultiChoiceSlide extends React.Component {
                         media={media}
                         onClick={media.isTarget === "1" ? () => this.selectCorrect(media.id) : () => this.selectWrong(media.id) }
                         className={media.className}
-                        upperText={upperText === "english" ? media.english : media.thai} 
+                        upperText={upperText === "english" ? checkCase(media.english) : media.thai} 
                         lowerText={lowerText === undefined ? undefined : media.phonetic }
                     />
                     ))}

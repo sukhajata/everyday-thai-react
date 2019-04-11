@@ -3,14 +3,13 @@ import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import Mood from '@material-ui/icons/Mood';
-import MoodBad from '@material-ui/icons/MoodBad';
 
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 
 import { shuffle } from '../services/helpers';
-import { textToSpeechEnglish } from '../services/dbAccess';
+import { textToSpeechEnglish, textToSpeechThai } from '../services/dbAccess';
+import settings from '../config/settings';
 
 class MatchingPairsImage11 extends React.Component {
 
@@ -115,7 +114,11 @@ class MatchingPairsImage11 extends React.Component {
         const { selectedImage, matched } = this.state;
         const { correctCard, correctCardFade, wrongCard, defaultCard } = this.props.classes;
         let cards = this.state.cards.splice(0);
-        textToSpeechEnglish(cards[index].english);
+        if (settings.firstLanguage === 'en') {
+            textToSpeechThai(cards[index].thai);
+        } else {
+            textToSpeechEnglish(cards[index].english);
+        }
         if (selectedImage) {
             if (selectedImage === cards[index].id) {
                 cards = cards.map((card, idx) => {

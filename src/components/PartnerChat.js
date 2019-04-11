@@ -11,6 +11,8 @@ import { getUser } from '../services/dbAccess';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
 
+import settings from '../config/settings';
+
 import { 
     translate, 
     textToSpeechThai,  
@@ -18,8 +20,6 @@ import {
     startChat, 
     sendMessage, 
     getQuestions, 
-    getMessages,
-    getName,
 } from '../services/dbAccess';
 
 import {
@@ -47,8 +47,8 @@ import {
 	CloseIcon,
 	Column,
 } from '@livechat/ui-kit';
-import { getDisplayName } from 'recompose';
 
+const english = settings.firstLanguage === 'en';
 
 class ChatRoom extends React.Component {
     
@@ -122,15 +122,28 @@ class ChatRoom extends React.Component {
             messages,
         });
         if (message.senderId === this.currentUser.id) {
-            this.translateText(message.id, content, "th");
+            if (english) {
+                this.translateText(message.id, content, "th");
+            } else {
+                this.translateText(message.id, content, 'en');
+            }
         } else {
-            this.translateText(message.id, content, "en");
+            if (english) {
+                this.translateText(message.id, content, "en");
+            } else {
+                this.translateText(message.id, content, 'th');
+            }
         }
     }
 
     onTextChanged = async ({ target }) => {
         this.setState({ text: target.value });
-        const translated = await translate(target.value, "th");
+        let translated = '';
+        if (english) {
+            translated = await translate(target.value, "th");
+        } else {
+            translated = await translate(target.value, "en");
+        }
         if (translated) {
             //check if message has been sent already
             if (this.state.text.length > 1) {
@@ -143,7 +156,7 @@ class ChatRoom extends React.Component {
     }
 
     onKeyUp = async ({ keyCode }) => {
-        if (keyCode == 13) {
+        if (keyCode === 13) {
             this.sendMessage();
         } 
     }
@@ -164,6 +177,7 @@ class ChatRoom extends React.Component {
 
     handleClickPlay = message => {
         if (message.senderId === this.currentUser.id) {
+            if (settings)
             textToSpeechThai(message.translation);
         } else {
             textToSpeechThai(message.text);
@@ -258,7 +272,7 @@ class ChatRoom extends React.Component {
                                         padding: 5,
                                         marginBottom: 10, 
                                     }}
-                                    placeholder="EN"
+                                    placeholder={english ? 'EN' : 'ไทย'}
                                     value={text}
                                     onChange={this.onTextChanged}
                                     onKeyUp={this.onKeyUp}

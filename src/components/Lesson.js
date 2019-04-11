@@ -109,7 +109,7 @@ class Lesson extends React.Component {
                     {currentSlide.categoryId === '3' &&
                         <MissingWord3
                             slide={currentSlide}
-                            imageUrl={imageUrl}
+                            target={target}
                             moveNextSlide={this.moveNextSlide}
                         />
                     }

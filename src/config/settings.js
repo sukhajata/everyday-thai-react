@@ -1,5 +1,5 @@
 export default {
-  /*  firstLanguage: 'th',
+    /*firstLanguage: 'th',
     secondLanguage: 'en',
     audioUrl: 'https://sukhajata.com/audio/thai/',
     songUrl: 'https://sukhajata.com/audio/',

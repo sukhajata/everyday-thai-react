@@ -52,6 +52,7 @@ const Menu = ({ classes, handleClick }) => {
                     <ListItemText primary={language.favourites}/> 
                 </Link>
             </ListItem>
+            <Divider/>
             <ListItem button className={classes.listMenuItem} onClick={handleClick}>
                 <ListItemIcon><Forum color="primary"/></ListItemIcon>
                 <Link className={classes.listLink} to="/partners/">

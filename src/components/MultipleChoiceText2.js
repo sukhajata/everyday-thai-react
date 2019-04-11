@@ -9,6 +9,7 @@ export default function MultipleChoiceText2 ({ slide, target, moveNextSlide }) {
     return (
         <MultiChoiceSlide
             slide={slide}
+            textToSpeak={english ? target.thai : target.english}
             labelUpper={english ? target.thai : target.english}
             labelLower={english ? target.phonetic : ''}
             extra={english ? slide.english : ''}
