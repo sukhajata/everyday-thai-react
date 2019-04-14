@@ -2,7 +2,7 @@ import * as firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import 'firebase/messaging';
-import keys from '../keys';
+import keys from '../config/keys';
 import { setTokenSentToServer, sendTokenToServer } from './messaging';
 
 const config = {
