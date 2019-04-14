@@ -8,7 +8,7 @@ import styles from '../styles';
 
 import AudioPrompt from './AudioPrompt';
 
-import { shuffle, checkCase, ucFirst } from '../services/helpers';
+import { shuffle, checkCase } from '../services/helpers';
 import { getLanguage, textToSpeechThai, textToSpeechEnglish } from '../services/dbAccess';
 import settings from '../config/settings';
 
@@ -136,7 +136,7 @@ class Translate9 extends React.Component {
                     <Chip key={item.mediaOrder}
                         className={item.className}
                         variant="outlined"
-                        label={english ? item.thai + ' ' + item.phonetic : checkCase(item.english)}
+                        label={english ? item.thai + ' ' + checkCase(item.phonetic) : checkCase(item.english)}
                     />
                 )}
                 <div style={{ marginTop: 10, marginBottom: 10}} >

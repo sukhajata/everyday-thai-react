@@ -4,12 +4,14 @@ import Divider from '@material-ui/core/Divider';
 
 import Send from '@material-ui/icons/Send';
 import VolumeUp from '@material-ui/icons/VolumeUp';
+import VideoCall from '@material-ui/icons/VideoCall';
 
 import Loading from './Loading';
 import Error from './Error';
 import { getUser } from '../services/dbAccess';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
+import { startAction } from '../services/rtc';
 
 import settings from '../config/settings';
 
@@ -60,6 +62,7 @@ class ChatRoom extends React.Component {
         translated: '',
         partnerName: '',
         error: '',
+        peerId: '',
     }
     
     componentDidMount = async () => {
@@ -84,13 +87,28 @@ class ChatRoom extends React.Component {
                     },
                     messageLimit: 20
                 });
-                //const partnerName = await getName(partnerId);
+                
+                this.peer = new window.Peer({
+                    key: 'lwjd5qra8257b9'
+                });
+                this.peer.on('open', this.onPeerOpen);
+                this.peer.on('connection', this.onPeerConnection);
             }
         }
 
         this.setState({
             loading: false,
         })
+    }
+
+    onPeerOpen = id => {
+        this.peerId = id;
+        console.log("My peer id is: ", this.peerId);
+    }
+
+    onPeerConnection = conn => {
+        this.peerConnection = conn;
+        console.log("Peer connected");
     }
 
     sendMessage = async () => {
@@ -108,31 +126,33 @@ class ChatRoom extends React.Component {
 
     messageAdded = message => {
         const content = message.parts[0].payload.content;
-        const msg = {
-            id: message.id,
-            text: content,
-            senderId: message.senderId,
-            date: message.createdAt,
-        };
-        const messages =  [
-            ...this.state.messages,
-            msg,
-        ];
-        
-        this.setState({
-            messages,
-        });
-        if (message.senderId === this.currentUser.id) {
-            if (english) {
-                this.translateText(message.id, content, "th");
+        if (content) {
+            const msg = {
+                id: message.id,
+                text: content,
+                senderId: message.senderId,
+                date: message.createdAt,
+            };
+            const messages =  [
+                ...this.state.messages,
+                msg,
+            ];
+            
+            this.setState({
+                messages,
+            });
+            if (message.senderId === this.currentUser.id) {
+                if (english) {
+                    this.translateText(message.id, content, "th");
+                } else {
+                    this.translateText(message.id, content, 'en');
+                }
             } else {
-                this.translateText(message.id, content, 'en');
-            }
-        } else {
-            if (english) {
-                this.translateText(message.id, content, "en");
-            } else {
-                this.translateText(message.id, content, 'th');
+                if (english) {
+                    this.translateText(message.id, content, "en");
+                } else {
+                    this.translateText(message.id, content, 'th');
+                }
             }
         }
     }
@@ -202,6 +222,17 @@ class ChatRoom extends React.Component {
         //var options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' };
         var output = local.toLocaleString()
         return output;
+    }
+
+    onPeerIdChanged = ({ target }) => {
+        this.setState({
+            peerId: target.value,
+        })
+    }
+
+    startVideoCall = async () => {
+        const stream = await startAction();
+        this.peer.call(this.state.peerId, stream);
     }
 
     render() {

@@ -1,4 +1,4 @@
-import React, { Component } from 'reactn';
+import React, { Component, setGlobal } from 'reactn';
 
 import PropTypes from 'prop-types';
 
@@ -25,14 +25,19 @@ import Partners from './components/Partners';
 import SignIn from './components/SignIn';
 import PartnerChat from './components/PartnerChat';
 import Song from './components/Song';
+import AudioChat from './components/AudioChat';
 
 import theme from './theme';
 import styles from './styles';
+import Firebase from './firebase/firebase';
 
 class App extends Component {
 
   async componentDidMount() {    
     await dbSetup();
+    this.setGlobal({
+      firebase: new Firebase(),
+    })
   }
 
   render() {
@@ -149,6 +154,15 @@ class App extends Component {
                   </ContentWithNavBar>
                 }
               />
+              <Route
+                path="/video"
+                render={props => 
+                  <ContentWithNavBar {...props}>
+                    <AudioChat {...props} />
+                  </ContentWithNavBar>
+                }
+              />
+
                 
             </Switch>
         </BrowserRouter>
