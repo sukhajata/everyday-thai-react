@@ -19,22 +19,17 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
-        const user = await getUser();
-        if (!user) {
-            this.props.history.push('/signin/');
-        } else {
-            const results = await getPartners();
-            this.setState({ 
-                partners: results,
-                loading: false,
-            });
+        const results = await getPartners();
+        this.setState({ 
+            partners: results,
+            loading: false,
+        });
 
-            const translated = await this.translateDetails(results);
-            this.setState({
-                partners: translated,
-                loading: false,
-            })
-        }
+        const translated = await this.translateDetails(results);
+        this.setState({
+            partners: translated,
+            loading: false,
+        })
     }
 
     translateDetails = partners => {

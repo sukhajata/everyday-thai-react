@@ -10,7 +10,7 @@ const config = {
   apiKey: keys.apiKey ,
   authDomain: keys.authDomain,
   databaseURL: keys.databaseURL,
-  projectId: keys.projectId,
+  projectId: keys.projectId.toString(),
   storageBucket: keys.storageBucket,
   messagingSenderId: keys.messagingSenderId,
 };
