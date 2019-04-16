@@ -26,146 +26,152 @@ import SignIn from './components/SignIn';
 import PartnerChat from './components/PartnerChat';
 import Song from './components/Song';
 import AudioChat from './components/AudioChat';
+import Login from './components/Login';
 
 import theme from './theme';
 import styles from './styles';
-import Firebase from './firebase/firebase';
+import Firebase, { FirebaseContext } from './firebase/';
 
 class App extends Component {
 
   async componentDidMount() {    
     await dbSetup();
-    this.setGlobal({
-      firebase: new Firebase(),
-    })
   }
 
   render() {
     const { classes } =this.props;
     return (
         <MuiThemeProvider theme={theme}>
-        <BrowserRouter>
-          <Switch>
-              <Route 
-                exact path="/"
-                render={ props =>
-                  <ContentWithNavBar {...props}>
-                    <Menu {...props} handleClick={null} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                exact path="/phrase-book/"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <PhraseBookMenu {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/phrase-book/:id"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <SubCategory {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/search/:input"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <SearchResults {...props}/>
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                exact path="/songs/"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <SongIndex
-                      {...props}
-                    />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/songs/:id"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <Song {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                exact path="/lessons/"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <LessonIndex 
-                      {...props}
-                    />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route 
-                path="/lessons/:id"
-                render={ props =>
-                  <div className={classes.lessonContent}>
-                    <Lesson 
-                      {...props}
-                    />
-                  </div>
-                }
-              />
-              <Route
-                path="/favourites/"
-                render={ props => 
-                  <ContentWithNavBar {...props}>
-                    <Favourites {...props}/>
-                  </ContentWithNavBar>  
-                }
-              />
-              <Route
-                path="/totals/:id/"
-                render={ props =>
-                  <Totals {...props} />
-                }
-              />
-              <Route
-                path="/signin/"
-                render={props => 
-                  <ContentWithNavBar {...props}>
-                    <SignIn {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/partners/"
-                render={props =>
-                  <ContentWithNavBar {...props}>
-                    <Partners {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/chat/:id"
-                render={props =>
-                  <ContentWithNavBar {...props}>
-                    <PartnerChat {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-              <Route
-                path="/video"
-                render={props => 
-                  <ContentWithNavBar {...props}>
-                    <AudioChat {...props} />
-                  </ContentWithNavBar>
-                }
-              />
-
-                
-            </Switch>
-        </BrowserRouter>
+          <FirebaseContext.Provider value={new Firebase()}>
+          <BrowserRouter>
+            <Switch>
+                <Route 
+                  exact path="/"
+                  render={ props =>
+                    <ContentWithNavBar {...props}>
+                      <Menu {...props} handleClick={null} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  exact path="/phrase-book/"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <PhraseBookMenu {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/phrase-book/:id"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <SubCategory {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/search/:input"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <SearchResults {...props}/>
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  exact path="/songs/"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <SongIndex
+                        {...props}
+                      />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/songs/:id"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <Song {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  exact path="/lessons/"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <LessonIndex 
+                        {...props}
+                      />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route 
+                  path="/lessons/:id"
+                  render={ props =>
+                    <div className={classes.lessonContent}>
+                      <Lesson 
+                        {...props}
+                      />
+                    </div>
+                  }
+                />
+                <Route
+                  path="/favourites/"
+                  render={ props => 
+                    <ContentWithNavBar {...props}>
+                      <Favourites {...props}/>
+                    </ContentWithNavBar>  
+                  }
+                />
+                <Route
+                  path="/totals/:id/"
+                  render={ props =>
+                    <Totals {...props} />
+                  }
+                />
+                <Route
+                  path="/signin/"
+                  render={props => 
+                    <ContentWithNavBar {...props}>
+                      <SignIn {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/partners/"
+                  render={props =>
+                    <ContentWithNavBar {...props}>
+                      <Partners {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/chat/:id"
+                  render={props =>
+                    <ContentWithNavBar {...props}>
+                      <PartnerChat {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/video"
+                  render={props => 
+                    <ContentWithNavBar {...props}>
+                      <AudioChat {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/login"
+                  render={props =>
+                    <ContentWithNavBar {...props}>
+                      <Login {...props}/>
+                    </ContentWithNavBar>
+                  }
+                />
+              </Switch>
+          </BrowserRouter>
+        </FirebaseContext.Provider>
       </MuiThemeProvider>
     );
   }

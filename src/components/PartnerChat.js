@@ -5,10 +5,13 @@ import Divider from '@material-ui/core/Divider';
 import Send from '@material-ui/icons/Send';
 import VolumeUp from '@material-ui/icons/VolumeUp';
 import VideoCall from '@material-ui/icons/VideoCall';
-
+import LocalPhone from '@material-ui/icons/LocalPhone';
+import { withStyles } from '@material-ui/core/styles';
+import styles from '../styles';
 import Loading from './Loading';
 import Error from './Error';
 import { getUser } from '../services/dbAccess';
+import { withFirebase } from '../firebase';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
 import { startAction } from '../services/rtc';
@@ -52,6 +55,11 @@ import {
 } from '@livechat/ui-kit';
 
 const english = settings.firstLanguage === 'en';
+const mediaStreamConstraints = {
+    video: { width: 320, height: 180},
+    audio: true,
+  };
+const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
 class ChatRoom extends React.Component {
     
@@ -62,7 +70,7 @@ class ChatRoom extends React.Component {
         translated: '',
         partnerName: '',
         error: '',
-        peerId: '',
+        inCall: false,
     }
     
     componentDidMount = async () => {
@@ -78,8 +86,9 @@ class ChatRoom extends React.Component {
                     error: "Could not connect."
                 })
             } else  {
-                const partnerId = this.props.match.params.id;
-                this.roomId = await startChat(this.currentUser, partnerId);
+                this.partnerId = this.props.match.params.id;
+                this.roomId = await startChat(this.currentUser, this.partnerId, this.props.firebase);
+                
                 this.currentUser.subscribeToRoomMultipart({
                     roomId: this.roomId,
                     hooks: {
@@ -93,6 +102,7 @@ class ChatRoom extends React.Component {
                 });
                 this.peer.on('open', this.onPeerOpen);
                 this.peer.on('connection', this.onPeerConnection);
+                this.peer.on('call', this.onPeerCall);
             }
         }
 
@@ -101,14 +111,22 @@ class ChatRoom extends React.Component {
         })
     }
 
-    onPeerOpen = id => {
-        this.peerId = id;
-        console.log("My peer id is: ", this.peerId);
+    onPeerOpen = async id => {
+        await this.props.firebase.setPeerId(this.roomId, id);
+        console.log("My peer id is: ", id);
     }
 
     onPeerConnection = conn => {
         this.peerConnection = conn;
         console.log("Peer connected");
+    }
+
+    onPeerCall = async call => {
+        const stream = await getUserMedia({video: true, audio:true});
+        call.answer(stream);
+        call.on('stream', remoteStream => {
+            this.remoteStream.srcObject = remoteStream.localStream;
+        })
     }
 
     sendMessage = async () => {
@@ -224,56 +242,73 @@ class ChatRoom extends React.Component {
         return output;
     }
 
-    onPeerIdChanged = ({ target }) => {
+    startVideoCall = async () => {
+        const partnerPeerId = await this.props.firebase.getPartnerPeerId(this.roomId);
+        this.setState({ inCall: true });
+        try {
+            const stream = await getUserMedia(mediaStreamConstraints);
+            this.video.srcObject = stream;
+            const remoteStream = await this.peer.call(partnerPeerId, stream);
+            this.remoteVideo.srcObject = remoteStream.localStream;
+        } catch (error) {
+            console.log(error);
+            alert("User not found");
+            //this.setState({ inCall: false });
+        }
+    }
+    
+    handleClickHangup = () => {
+        this.remoteVideo.srcObject = null;
+        this.video.srcObject = null;
         this.setState({
-            peerId: target.value,
+            inCall: false,
         })
     }
 
-    startVideoCall = async () => {
-        const stream = await startAction();
-        this.peer.call(this.state.peerId, stream);
-    }
-
     render() {
-        const { loading, error, messages, text, translated } = this.state;
-        
+        const { loading, error, messages, text, translated, inCall } = this.state;
+        const { classes } = this.props;
+
         if (loading) return <Loading />
 
         if (error) return <Error message={error} />
 
         return (
             <ThemeProvider theme={purpleTheme}>
-                <div style={{ 
-                    position: 'absolute',
-                    top: 60,
-                    bottom: 90,
-                    left: 0,
-                    right: 0,
-                    overflow: 'auto',
-                    //display: 'flex',
-                    //flexDirection: 'column',
-                    //height: '100%'
-                    }}
-                >
+                <div style={{position: 'absolute', top: 15, right: 10, zIndex: 20000, color: '#fff'}}>
+                {inCall &&
+                    <LocalPhone onClick={this.handleClickHangup}/>
+                }
+                {!inCall &&
+                    <VideoCall onClick={this.startVideoCall}/>
+                }
+                </div>
+                <div className={inCall ? classes.videoCall : classes.hidden}>
+                    <video 
+                        id="localVideo" 
+                        ref={video => this.video = video}
+                        width="120"
+                        autoPlay 
+                        playsInline
+                    ></video>
+                    <video 
+                        id="remoteVideo" 
+                        ref={video => this.remoteVideo = video}
+                        autoPlay 
+                        playsInline
+                    ></video>
+                </div>
+                <div className={inCall ? classes.messageContainerWithVideo : classes.messageContainer}>
                     <MessageList active containScrollInSubtree style={{ background:'#e8e8ee' }}>
                         <MessageGroup  >
                         {messages.map(message =>
                             <Message key={message.id} date={this.getLocalDateTime(message.date)} isOwn={message.senderId == this.currentUser.id} >
                                 <Bubble isOwn={message.senderId === this.currentUser.id}>
-                                    <MessageText style={{ 
-                                        fontSize: 16,
-                                        padding: 8,
-                                        minWidth: 100,
-                                    }}>
+                                    <MessageText className={classes.message}>
                                         {message.text}
                                     </MessageText>
                                     {message.translation &&
-                                    <MessageText style={{ 
-                                        padding: 8,
-                                        minWidth: 100,
-                                        fontSize: 16,
-                                    }}>
+                                    <MessageText className={classes.message}>
                                         {message.translation}
                                     </MessageText>
                                     }
@@ -291,26 +326,11 @@ class ChatRoom extends React.Component {
                         </MessageGroup>
                     </MessageList>
                     </div>
-                    <div id="footer" 
-                        style={{
-                            position:'absolute', 
-                            bottom:0, 
-                            height:90, 
-                            left:0, 
-                            right:0, 
-                            overflow:'hidden'
-                        }}
-                    > 
+                    <div id="footer" className={classes.messageFooter}> 
                         <TextComposer onSend={this.send}>
                             <Row align="center">
                                 <textarea 
-                                    style={{ 
-                                        width: '90%', 
-                                        height: 20,
-                                        border: 'none',
-                                        padding: 5,
-                                        marginBottom: 10, 
-                                    }}
+                                    className={classes.messageInputUpper}
                                     placeholder={english ? 'EN' : 'ไทย'}
                                     value={text}
                                     onChange={this.onTextChanged}
@@ -325,12 +345,7 @@ class ChatRoom extends React.Component {
                             <Row align="center">
                                 <Fill>
                                     <textarea 
-                                        style={{ 
-                                            width: '90%', 
-                                            height: 20,
-                                            border: 'none', 
-                                            padding: 5,
-                                        }}
+                                        className={classes.messageInputLower}
                                         readOnly
                                         value={translated}
                                     />
@@ -345,12 +360,12 @@ class ChatRoom extends React.Component {
                                 </Fill>
                             </Row>
                         </TextComposer>
-                    
                 </div>
+
             </ThemeProvider>
-            
         )
     }
 }
 
-export default ChatRoom;
+const fired = withFirebase(ChatRoom);
+export default withStyles(styles)(fired);

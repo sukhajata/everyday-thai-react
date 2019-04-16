@@ -339,6 +339,56 @@ export default {
     hidden: {
       visibility: 'collapse',
     },
+    messageContainer: {
+      position: 'absolute',
+      top: 60,
+      bottom: 90,
+      left: 0,
+      right: 0,
+      overflow: 'auto',
+    },
+    videoCall: {
+      position: 'absolute',
+      top: 60,
+      height: 200,
+      left: 0,
+      right: 0,
+      overflow: 'auto',
+    },
+    messageContainerWithVideo: {
+      position: 'absolute',
+      top: 260,
+      bottom: 90,
+      left: 0,
+      right: 0,
+      overflow: 'auto',
+    },
+    message: {
+      fontSize: 16,
+      padding: 8,
+      minWidth: 100,
+    },
+    messageFooter: {
+      position:'absolute', 
+      bottom:0, 
+      height:90, 
+      left:0, 
+      right:0, 
+      overflow:'hidden'
+    },
+    messageInputUpper: {
+      width: '90%', 
+      height: 20,
+      border: 'none',
+      padding: 5,
+      marginBottom: 10, 
+    },
+    messageInputLower: {
+      width: '90%', 
+      height: 20,
+      border: 'none',
+      padding: 5,
+    },
     chatInput: {
       width: '90%', 
       height: 50,

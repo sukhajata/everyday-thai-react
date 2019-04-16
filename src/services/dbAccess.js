@@ -143,17 +143,27 @@ export async function connectToChatKit(userId) {
     }
 }
 
-export async function startChat(currentUser, partnerId) {
+export async function startChat(currentUser, partnerId, firebase) {
     try {
         const englishUserId = english ? currentUser.id : partnerId;
         const thaiUserId = english ? partnerId : currentUser.id;
         
-        const result = await fetchJSON(API.GET_ROOM + "?englishUserId=" + englishUserId + "&thaiUserId=" + thaiUserId);
+        /*const result = await fetchJSON(API.GET_ROOM + "?englishUserId=" + englishUserId + "&thaiUserId=" + thaiUserId);
         if (result.roomId && result.roomId > 0) {
             console.log("existing room");
             return result.roomId;
-        }
-
+        }*/
+        //check for existing room for this pair
+        const snapshot = await firebase.getRoom(englishUserId, thaiUserId);
+        const items = [];
+        snapshot.forEach(item => {
+            items.push(item.data());
+        })
+        if (items.length > 0) {
+            return items[0].roomId;
+        } 
+        
+        //create new room
         const room = await currentUser.createRoom({
             name: Date.now().toString(),
             private: true,
@@ -163,12 +173,9 @@ export async function startChat(currentUser, partnerId) {
         if (!room.id) {
             throw new Error(room);
         }
-        const data = {
-            englishUserId,
-            thaiUserId,
-            roomId: room.id
-        }
-        await post(API.ADD_ROOM, data);
+       
+        //await post(API.ADD_ROOM, data);
+        await firebase.addRoom(englishUserId, thaiUserId, room.id, 0);
         return room.id;
     } catch (error) {
         console.log(error);
@@ -176,11 +183,11 @@ export async function startChat(currentUser, partnerId) {
     }
 }
 
-export async function getRooms(id) {
+/*export async function getRooms(id) {
     const q = settings.firstLanguage === 'th' ? '?thaiUserId=' + id : '?englishUserId=' + id;
     const rooms = await fetchJSON(API.GET_ROOMS + q);
     return rooms;
-}
+}*/
 
 export async function getMessages(currentUser, roomId) {
     try {

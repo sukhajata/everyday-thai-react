@@ -1,18 +1,22 @@
 import * as firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
-import 'firebase/messaging';
+//import 'firebase/messaging';
 import keys from '../config/keys';
 import { setTokenSentToServer, sendTokenToServer } from './messaging';
+import settings from '../config//settings';
 
 const config = {
-  apiKey: keys.apiKey || process.env.REACT_APP_API_KEY,
-  authDomain: keys.authDomain || process.env.REACT_APP_AUTH_DOMAIN,
-  databaseURL: keys.databaseURL || process.env.REACT_APP_DATABASE_URL,
-  projectId: keys.projectId || process.env.REACT_APP_PROJECT_ID,
-  storageBucket: keys.storageBucket || process.env.REACT_APP_STORAGE_BUCKET,
-  messagingSenderId: keys.messagingSenderId || process.env.REACT_APP_MESSAGING_SENDER_ID,
+  apiKey: keys.apiKey ,
+  authDomain: keys.authDomain,
+  databaseURL: keys.databaseURL,
+  projectId: keys.projectId,
+  storageBucket: keys.storageBucket,
+  messagingSenderId: keys.messagingSenderId,
 };
+
+const COLLECTION_ROOMS = "rooms";
+const english = settings.firstLanguage === 'en';
 
 class Firebase {
     constructor() {
@@ -21,8 +25,7 @@ class Firebase {
 
             this.db = firebase.firestore();
             this.auth = firebase.auth();
-
-            this.messaging = firebase.messaging();
+            /*this.messaging = firebase.messaging();
             this.messaging.usePublicVapidKey(
                 keys.messagingPublicVapidKey || process.env.REACT_APP_MESSAGING_PUBLIC_VAPID_KEY
             );
@@ -31,7 +34,7 @@ class Firebase {
                 .catch((err) => {
                     console.log('Unable to get permission to notify.', err);
                 });
-          
+            */
 
             this.authenticated = false;
 
@@ -73,6 +76,56 @@ class Firebase {
         });
     }
 
+    addRoom = async (englishUserId, thaiUserId, roomId) => {
+        const result = await this.db.collection(COLLECTION_ROOMS).doc(roomId).set({
+            englishUserId,
+            englishPeerId: "0",
+            thaiUserId,
+            thaiPeerId: "0",
+            roomId
+        });
+        return result;
+    }
+
+    getRoom = async (englishUserId, thaiUserId) => {
+        const room = await this.db.collection(COLLECTION_ROOMS)
+            .where("englishUserId", "==", englishUserId.toString())
+            .where("thaiUserId", "==", thaiUserId.toString())
+            .get();
+        return room;
+    }
+
+    deleteRoom = (id) => {
+        this.db.collection(COLLECTION_ROOMS).doc(id.toString()).delete();
+    }
+
+    setPeerId(id, peerId) {
+        if (english) {
+            this.db.collection(COLLECTION_ROOMS).doc(id.toString()).update({
+                englishPeerId: peerId, 
+            })
+        } else {
+            this.db.collection(COLLECTION_ROOMS).doc(id.toString()).update({
+                thaiPeerId: peerId, 
+            })
+        }
+    }
+
+    getPartnerPeerId = async (roomId) => {
+        const doc = await this.db.collection(COLLECTION_ROOMS).doc(roomId).get();
+        if (doc.exists) {
+            const data = doc.data();
+            const partnerPeerId = english ? data.thaiPeerId : data.englishPeerId;
+            return partnerPeerId;
+        } else {
+            return false;
+        }
+    }
+
+    registerOnRoomChangedCallback(id, callback) {
+        this.db.collection(COLLECTION_ROOMS).doc(id).onSnapshot(callback);
+    }
+
     registerOnMessageCallback(callback) {
         // Handle incoming messages. Called when:
         // - a message is received while the app has focus
@@ -82,9 +135,7 @@ class Firebase {
     }
 
     // *** Auth API ***
-    isAuthenticated = () => {
-        return this.authenticated;
-    }
+    isAuthenticated = () => this.authenticated;
 
     createUser = async (email, password) => await this.auth.createUserWithEmailAndPassword(email, password);
 

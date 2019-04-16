@@ -6,7 +6,6 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 import Loading from './Loading';
-
 import { getPartners, getUser, translate } from '../services/dbAccess';
 import settings from '../config/settings';
 
@@ -59,7 +58,7 @@ class Partners extends React.Component {
         return Promise.all(promises);
     }
 
-    chat = async partnerId => {
+    chat = async (partnerId) => {
         this.props.history.push('/chat/' + partnerId);
     }
 
@@ -70,7 +69,7 @@ class Partners extends React.Component {
         if (loading) return <Loading />
 
         return (
-            <React.Fragment>
+            <>
             {partners.map(partner => 
                 <Card key={partner.id} style={{ margin: 20 }}>
                     <CardContent onClick={() => this.chat(partner.id)}>
@@ -99,9 +98,9 @@ class Partners extends React.Component {
                         </Grid>
                     </CardContent>
                 </Card>
-                
+            
             )}
-            </React.Fragment>
+            </>
         )
     }
 }
