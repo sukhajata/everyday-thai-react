@@ -4,13 +4,13 @@ import 'firebase/auth';
 //import 'firebase/messaging';
 import keys from '../config/keys';
 import { setTokenSentToServer, sendTokenToServer } from './messaging';
-import settings from '../config//settings';
+import settings from '../config/settings';
 
 const config = {
   apiKey: keys.apiKey ,
   authDomain: keys.authDomain,
   databaseURL: keys.databaseURL,
-  projectId: keys.projectId.toString(),
+  projectId: keys.projectId,
   storageBucket: keys.storageBucket,
   messagingSenderId: keys.messagingSenderId,
 };

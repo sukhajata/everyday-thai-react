@@ -19,6 +19,7 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
+        console.log(process.env.environment);
         const results = await getPartners();
         this.setState({ 
             partners: results,
