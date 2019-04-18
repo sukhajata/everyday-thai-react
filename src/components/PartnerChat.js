@@ -55,12 +55,12 @@ import {
 } from '@livechat/ui-kit';
 
 const english = settings.firstLanguage === 'en';
-const mediaStreamConstraints = {
+/*const mediaStreamConstraints = {
     video: { width: 320, height: 180},
     audio: true,
   };
 const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
+*/
 class ChatRoom extends React.Component {
     
     state = {
@@ -123,7 +123,7 @@ class ChatRoom extends React.Component {
     }
 
     onPeerCall = async call => {
-        const stream = await getUserMedia({video: true, audio:true});
+        const stream = await startAction();
         call.answer(stream);
         call.on('stream', remoteStream => {
             this.remoteStream.srcObject = remoteStream.localStream;
@@ -247,10 +247,11 @@ class ChatRoom extends React.Component {
         const partnerPeerId = await this.props.firebase.getPartnerPeerId(this.roomId);
         this.setState({ inCall: true });
         try {
-            const stream = await getUserMedia(mediaStreamConstraints);
+            const stream = await startAction();
             this.video.srcObject = stream;
-            const remoteStream = await this.peer.call(partnerPeerId, stream);
-            this.remoteVideo.srcObject = remoteStream.localStream;
+            const call = this.peer.call(partnerPeerId, stream);
+            call.on('call', this.receiveRemoteStream);
+            
         } catch (error) {
             console.log(error);
             alert("User not found");
@@ -258,6 +259,11 @@ class ChatRoom extends React.Component {
         }
     }
     
+    receiveRemoteStream = remoteStream => {
+        console.log(remoteStream);
+        this.remoteVideo.srcObject = remoteStream.localStream;
+    }
+
     handleClickHangup = () => {
         this.remoteVideo.srcObject = null;
         this.video.srcObject = null;
@@ -278,7 +284,7 @@ class ChatRoom extends React.Component {
             <ThemeProvider theme={purpleTheme}>
                 <div style={{position: 'absolute', top: 15, right: 10, zIndex: 20000, color: '#fff'}}>
                 {inCall &&
-                    <LocalPhone onClick={this.handleClickHangup}/>
+                    <LocalPhone onClick={this.handleClickHangup} style={{ color: '#f0f0f0' }}/>
                 }
                 {!inCall &&
                     <VideoCall onClick={this.startVideoCall}/>
@@ -286,15 +292,15 @@ class ChatRoom extends React.Component {
                 </div>
                 <div className={inCall ? classes.videoCall : classes.hidden}>
                     <video 
-                        id="localVideo" 
-                        ref={video => this.video = video}
-                        width="120"
+                        id="remoteVideo" 
+                        ref={video => this.remoteVideo = video}
                         autoPlay 
                         playsInline
                     ></video>
-                    <video 
-                        id="remoteVideo" 
-                        ref={video => this.remoteVideo = video}
+                     <video 
+                        id="localVideo" 
+                        ref={video => this.video = video}
+                        style={{width: 120, position: 'relative', top: -120}}
                         autoPlay 
                         playsInline
                     ></video>
