@@ -9,11 +9,10 @@ import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
-import { getLanguage, signUp, setUser, getUser } from '../services/dbAccess';
+import { getLanguage, addChatkitUser, setUserLocal } from '../services/dbAccess';
 import settings from '../config/settings';
-
+import { withFirebase } from '../firebase';
 import styles from '../styles';
-
 import Loading from './Loading';
 import Error from './Error';
 
@@ -21,7 +20,6 @@ class SignIn extends React.Component {
 
     state = {
         name: '',
-        email: '',
         age: '',
         country: '',
         province: '',
@@ -31,47 +29,60 @@ class SignIn extends React.Component {
         error: null,
     }
 
+    componentDidMount() {
+        this.props.firebase.registerAuthenticationStateChangedListener(this.onAuthenticationStateChanged);
+    }
+
+    onAuthenticationStateChanged = async (user) => {
+        if(user != null) {
+            const details = await this.props.firebase.getUserDetails(user.uid);
+            this.setState({
+                name: details.name ? details.name : '',
+                age: details.age ? details.age : '',
+                country: details.country ? details.country : '',
+                province: details.province ? details.province : '',
+            })
+        }
+    }
+
     handleChange = name => event => {
         this.setState({ [name]: event.target.value });
     };
 
     onFormSubmit = async () => {
-        const { name, age, email, gender, country, province } = this.state;
-        if (name.length > 1 && age.length > 0) {
+        const { name, age, gender, country, province } = this.state;
+        const { firebase } = this.props;
+        const user = firebase.auth.currentUser;
+        if (user) {
             this.setState({
                 loading: true,
             });
             const data = {
                 name,
                 age,
-                email,
                 gender,
                 country,
                 province,
                 firstLanguage: settings.firstLanguage,
             };
-            const result = await signUp(data);
-
-            if (!result) {
-                this.setState({
-                    loading: false,
-                });
-            } else {
-                const user = {
-                    ...data,
-                    id: result.id,
-                };
-                setUser(user);
-                this.props.history.push('/partners/');
-            }
-           
+            await firebase.addUserDetails(user.uid, data);
+            await addChatkitUser(user.uid, name);
+            setUserLocal({
+                id: user.uid,
+                ...data
+            })
+            this.props.history.push('/interests/');
         }   
     }
 
     render() {
         const { classes } = this.props;
-        const { loading, error, name, email, province, country, age } = this.state;
+        const { loading, error, name, email, province, country, age, gender } = this.state;
         const language = getLanguage();
+        const isValid =   name.length > 1 && 
+        age.length > 0 && 
+        gender.length > 0 &&
+        (country.length > 1 || province.length > 1)
 
         if (loading) return <Loading />
 
@@ -92,19 +103,6 @@ class SignIn extends React.Component {
                     margin="normal"
                     placeholder={language.name}
                     onChange={this.handleChange('name')}
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                />
-                 <TextField
-                    id="email"
-                    label={language.email}
-                    required
-                    value={email}
-                    className={classes.textField}
-                    margin="normal"
-                    placeholder={language.email}
-                    onChange={this.handleChange('email')}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -171,6 +169,7 @@ class SignIn extends React.Component {
                     <Button 
                         onClick={this.onFormSubmit}
                         variant="contained"
+                        disabled={!isValid}
                         color="primary"
                         style={{ margin: 8 }}
                     >
@@ -183,5 +182,5 @@ class SignIn extends React.Component {
     }
 }
    
-
-export default withStyles(styles)(SignIn);
+const fired = withFirebase(SignIn);
+export default withStyles(styles)(fired);

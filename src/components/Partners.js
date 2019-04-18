@@ -6,8 +6,9 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 
 import Loading from './Loading';
-import { getPartners, getUser, translate } from '../services/dbAccess';
+import { translate, getUserLocal } from '../services/dbAccess';
 import settings from '../config/settings';
+import { withFirebase } from '../firebase';
 
 const english = settings.firstLanguage === 'en';
 
@@ -19,8 +20,10 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
-        console.log(process.env.environment);
-        const results = await getPartners();
+        if (!getUserLocal) {
+            this.props.history.push('/login');
+        }
+        const results = await this.props.firebase.getPartners();
         this.setState({ 
             partners: results,
             loading: false,
@@ -55,7 +58,12 @@ class Partners extends React.Component {
     }
 
     chat = async (partnerId) => {
-        this.props.history.push('/chat/' + partnerId);
+        const { firebase, history } = this.props;
+        if (!firebase.auth.currentUser) {
+            history.push('/login');
+        } else {
+            history.push('/chat/' + partnerId);
+        }
     }
 
     render() {
@@ -87,8 +95,14 @@ class Partners extends React.Component {
                                     {partner.age}
                                 </Typography>
                             }
-                                <Typography variant="body1">
+                                <Typography variant="body1" style={{marginBottom: 10}}>
                                     {english ? partner.province : partner.country}
+                                </Typography>
+                                <Typography variant="body1" style={{marginBottom: 10}}>
+                                    {english ? partner.interestsEnglish : partner.interestsThai}
+                                </Typography>
+                                <Typography variant="body1" style={{marginBottom: 10}}>
+                                    {english ? partner.interestsThai : partner.interestsEnglish}
                                 </Typography>
                             </Grid>
                         </Grid>
@@ -101,4 +115,4 @@ class Partners extends React.Component {
     }
 }
 
-export default Partners;
+export default withFirebase(Partners);

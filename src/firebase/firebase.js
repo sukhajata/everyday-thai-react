@@ -16,6 +16,7 @@ const config = {
 };
 
 const COLLECTION_ROOMS = "rooms";
+const COLLECTION_USERS = "users";
 const english = settings.firstLanguage === 'en';
 
 class Firebase {
@@ -135,7 +136,9 @@ class Firebase {
     }
 
     // *** Auth API ***
-    isAuthenticated = () => this.authenticated;
+    registerAuthenticationStateChangedListener = (listener) => {
+        this.auth.onAuthStateChanged((user) => listener(user));            
+    }
 
     createUser = async (email, password) => await this.auth.createUserWithEmailAndPassword(email, password);
 
@@ -145,11 +148,60 @@ class Firebase {
 
     resetPassword = async email => await this.auth.sendPasswordResetEmail(email);
 
+    //*** users */
+    getFirebaseUser = () => this.auth.currentUser;
 
-    // *** User API ***
-    user = uid => this.db.ref(`users/${uid}`);
+    getUserDetails = async (uid) => {
+        const doc = await this.db.collection(COLLECTION_USERS).doc(uid).get();
+        if (doc.exists) {
+            return doc.data();
+        }
+        return null;
+    }
 
-    users = () => this.db.ref('users');
+    addUserDetails = async(uid, data) => {
+        try {
+            const result = await this.db.collection(COLLECTION_USERS).doc(uid).set(data);
+            return result;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
+
+    addUserInterests = async(uid, data) => {
+        try {
+            const result = await this.db.collection(COLLECTION_USERS).doc(uid).update(data);
+            return result;
+        } catch(error) {
+            console.log(error);
+            return false;
+        }
+    }
+
+    getPartners = async() => {
+        try {
+            const snapshot = await this.db.collection(COLLECTION_USERS)
+                .where('firstLanguage', '==', english ? 'th': 'en')
+                .get();
+            const items = snapshot.docs.map(item => {
+                return {
+                    id: item.id,
+                    ...item.data()
+                }
+            });
+            /*snapshot.forEach(item => {
+                items.push({
+                    id: item.id,
+                    ...item.data(),
+                });
+            })*/
+            return items;
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+    }
 
     //utility
     handleError = error => {

@@ -5,6 +5,7 @@ export default {
     favourites: "Favourites",
     languagePartner: "Language partner",
     shareDetails: "Please share a few details",
+    shareInterests: "Tell us a bit about your interests. This will be on your public profile.",
     title: "Everyday Thai",
     continue: "Continue",
     age: "Age",

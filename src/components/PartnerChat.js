@@ -74,13 +74,13 @@ class ChatRoom extends React.Component {
     }
     
     componentDidMount = async () => {
-        const user = await getUser();
-        if (!user) {
-            this.props.history.push('/');
-        } else {
-            
-            this.currentUser = await connectToChatKit(user.id);
-            
+        this.props.firebase.registerAuthenticationStateChangedListener(this.onAuthenticationStateChanged);
+    }
+
+    onAuthenticationStateChanged = async user => {
+        if (user != null) {
+            this.currentUser = await connectToChatKit(user.uid);
+        
             if (!this.currentUser) {
                 this.setState({
                     error: "Could not connect."
@@ -104,11 +104,12 @@ class ChatRoom extends React.Component {
                 this.peer.on('connection', this.onPeerConnection);
                 this.peer.on('call', this.onPeerCall);
             }
+            
+    
+            this.setState({
+                loading: false,
+            })
         }
-
-        this.setState({
-            loading: false,
-        })
     }
 
     onPeerOpen = async id => {

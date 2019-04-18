@@ -102,7 +102,17 @@ export async function getPartners() {
     return users;
 }
 
-export async function signUp(data) {
+
+export async function addChatkitUser(uid, name) {
+    const response = await fetchJSON(API.ADD_CHATKIT_USER + "?name=" + name + "&id=" + uid);
+    if (!response.name) {
+        console.log(response);
+        return false;
+    }
+    return response;
+}
+/*
+export async function signUp(data, firebase) {
     const result = await post(API.ADD_USER, data);
     if (result) {
         if (result.notification != 2) { //user already exists
@@ -117,7 +127,7 @@ export async function signUp(data) {
         alert("error");
     }
     return result;
-}
+}*/
 
 //chat
 export async function connectToChatKit(userId) {
@@ -308,45 +318,27 @@ async function loadData() {
     db.set(dbName, newArray).write();
 }
 
-export async function getUser(email) {
-    if (getGlobal().user) {
-        const user = getGlobal().user;
-        return user;
-    }
+export async function getUserLocal(email) {
     
     if (localStorage.getItem(userKey) !== undefined && localStorage.getItem(userKey) !== null) {
-        const user = JSON.parse(localStorage.getItem(userKey));
-        if (user.facebookId)
-        setGlobal({
-            user: user,
-        })
-        return user;
-    }
-
-    if (email) {
-        const user = await fetchJSON(API.GET_USER + "?email=" + email);
-        setUser(user[0]);
-        return user;
+        return JSON.parse(localStorage.getItem(userKey));
     }
     
     return null;
 }
 
-export function setUser(user) {
-    setGlobal({
-        user,
-    })
+export function setUserLocal(user) {
     localStorage.setItem(userKey, JSON.stringify(user));
 }
 
 export async function getCategories() {
-    let categories;
-    if (localStorage.getItem('categories') !== null) {
+    const categories = await fetchJSON(API.CAT_SUB);
+    /*if (localStorage.getItem('categories') !== null) {
         categories = JSON.parse(localStorage.getItem('categories'));
     } else {
         categories = await fetchJSON(API.CAT_SUB);
         localStorage.setItem('categories', JSON.stringify(categories));
-    }
+    }*/
     return categories;
 }
 
