@@ -103,6 +103,15 @@ class ChatRoom extends React.Component {
                 this.peer.on('open', this.onPeerOpen);
                 this.peer.on('connection', this.onPeerConnection);
                 this.peer.on('call', this.onPeerCall);
+                this.peer.on('close', function() {
+                //    conn = null;
+                  //  status.innerHTML = "Connection destroyed. Please refresh";
+                    console.log('Connection destroyed');
+                });
+                this.peer.on('error', function (err) {
+                    console.log(err);
+                    alert('' + err);
+                });
             }
             
     
@@ -125,8 +134,10 @@ class ChatRoom extends React.Component {
     onPeerCall = async call => {
         const stream = await startAction();
         call.answer(stream);
+        this.setState({ inCall: true });
+        this.video.srcObject = stream;
         call.on('stream', remoteStream => {
-            this.remoteStream.srcObject = remoteStream.localStream;
+            this.remoteVideo.srcObject = remoteStream;
         })
     }
 
@@ -248,10 +259,9 @@ class ChatRoom extends React.Component {
         this.setState({ inCall: true });
         try {
             const stream = await startAction();
-            this.video.srcObject = stream;
             const call = this.peer.call(partnerPeerId, stream);
-            call.on('call', this.receiveRemoteStream);
-            
+            call.on('stream', this.receiveRemoteStream);
+            this.video.srcObject = stream;
         } catch (error) {
             console.log(error);
             alert("User not found");
@@ -300,7 +310,7 @@ class ChatRoom extends React.Component {
                      <video 
                         id="localVideo" 
                         ref={video => this.video = video}
-                        style={{width: 120, position: 'relative', top: -120}}
+                        style={{height: 120, position: 'relative', top: -120}}
                         autoPlay 
                         playsInline
                     ></video>

@@ -165,9 +165,7 @@ class App extends Component {
                 <Route
                   path="/login"
                   render={props =>
-                    <ContentWithNavBar {...props}>
-                      <Login {...props}/>
-                    </ContentWithNavBar>
+                    <Login {...props}/>
                   }
                 />
                 <Route

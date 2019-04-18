@@ -20,7 +20,8 @@ class Partners extends React.Component {
     }
 
     async componentDidMount() {
-        if (!getUserLocal) {
+        const user = await getUserLocal();
+        if (!user) {
             this.props.history.push('/login');
         }
         const results = await this.props.firebase.getPartners();

@@ -32,7 +32,10 @@ const Login = ({ firebase, history }) => {
     });
 
     return (
-        <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth}/>        
+        <StyledFirebaseAuth 
+            uiConfig={uiConfig} 
+            firebaseAuth={firebase.auth}
+        />        
     );
 }
    

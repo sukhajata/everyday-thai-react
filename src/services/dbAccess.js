@@ -321,7 +321,8 @@ async function loadData() {
 export async function getUserLocal(email) {
     
     if (localStorage.getItem(userKey) !== undefined && localStorage.getItem(userKey) !== null) {
-        return JSON.parse(localStorage.getItem(userKey));
+        const result = await JSON.parse(localStorage.getItem(userKey));
+        return result;
     }
     
     return null;
