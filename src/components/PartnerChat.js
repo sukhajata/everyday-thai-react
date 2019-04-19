@@ -76,7 +76,7 @@ class ChatRoom extends React.Component {
 
     onAuthenticationStateChanged = async user => {
         if (user != null) {
-            this.currentUser = await connectToChatKit("JUwxwMPqrpgqm4mRFNICsaHnQVo2");//user.uid);
+            this.currentUser = await connectToChatKit(user.uid);
         
             if (!this.currentUser) {
                 this.setState({
