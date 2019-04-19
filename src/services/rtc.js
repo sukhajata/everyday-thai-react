@@ -4,13 +4,9 @@
 
 // In this codelab, you will be streaming video only: "video: true".
 // Audio will not be streamed because it is set to "audio: false" by default.
-const smallMediaStreamConstraints = {
-  video: { width: 120 },
-  audio: true,
-};
 
 const mediaStreamConstraints = {
-  video: { width: 320 },
+  video: true,
   audio: true,
 };
 
@@ -213,12 +209,15 @@ export async function startAction() {
     //.then(gotLocalMediaStream).catch(handleLocalMediaStreamError);
 }
 
-export async function getLocalStream(small) {
-  //startButton.disabled = true;
+export async function getLocalStream(width) {
+  const smallMediaStreamConstraints = {
+    video: { width },
+    audio: true,
+  };
+  
   try {
     trace('Requesting local stream.');
-    const stream = await navigator.mediaDevices
-      .getUserMedia(small ? smallMediaStreamConstraints : mediaStreamConstraints);
+    const stream = await navigator.mediaDevices.getUserMedia(smallMediaStreamConstraints);
     //const stream = await gotLocalMediaStream(userMedia);
     return stream;
   } catch (error) {

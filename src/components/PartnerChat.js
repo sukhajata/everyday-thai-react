@@ -14,7 +14,7 @@ import { getUser } from '../services/dbAccess';
 import { withFirebase } from '../firebase';
 
 import { ThemeProvider, purpleTheme } from '@livechat/ui-kit';
-import { startAction } from '../services/rtc';
+import { startAction, getLocalStream } from '../services/rtc';
 
 import settings from '../config/settings';
 
@@ -55,12 +55,13 @@ import {
 } from '@livechat/ui-kit';
 
 const english = settings.firstLanguage === 'en';
-/*const mediaStreamConstraints = {
-    video: { width: 320, height: 180},
+const mediaStreamConstraints = {
+    video: { height: 180},
     audio: true,
   };
-const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-*/
+
+//const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
 class ChatRoom extends React.Component {
     
     state = {
@@ -79,7 +80,7 @@ class ChatRoom extends React.Component {
 
     onAuthenticationStateChanged = async user => {
         if (user != null) {
-            this.currentUser = await connectToChatKit(user.uid);
+            this.currentUser = await connectToChatKit("757S8KPTrRW4sxbcVf2l2QthdP63");//user.uid);
         
             if (!this.currentUser) {
                 this.setState({
@@ -97,21 +98,7 @@ class ChatRoom extends React.Component {
                     messageLimit: 20
                 });
                 
-                this.peer = new window.Peer({
-                    key: 'lwjd5qra8257b9'
-                });
-                this.peer.on('open', this.onPeerOpen);
-                this.peer.on('connection', this.onPeerConnection);
-                this.peer.on('call', this.onPeerCall);
-                this.peer.on('close', function() {
-                //    conn = null;
-                  //  status.innerHTML = "Connection destroyed. Please refresh";
-                    console.log('Connection destroyed');
-                });
-                this.peer.on('error', function (err) {
-                    console.log(err);
-                    alert('' + err);
-                });
+                this.setupPeer();
             }
             
     
@@ -119,6 +106,33 @@ class ChatRoom extends React.Component {
                 loading: false,
             })
         }
+    }
+
+    setupPeer = () => {
+        this.peer = new window.Peer({
+            key: 'lwjd5qra8257b9'
+        });
+        this.peer.on('open', this.onPeerOpen);
+        this.peer.on('connection', this.onPeerConnection);
+        this.peer.on('call', this.onPeerCall);
+        /*this.peer.on('close', function() {
+        //    conn = null;
+          //  status.innerHTML = "Connection destroyed. Please refresh";
+            alert('Connection destroyed');
+        });*/
+        this.peer.on('disconnected', () => {
+            this.video.srcObject.getTracks().forEach(track => track.stop());
+            this.remoteVideo.srcObject = null;
+            this.video.srcObject = null;
+            this.setState({
+                inCall: false,
+            })
+            this.setupPeer();
+        })
+        this.peer.on('error', function (err) {
+            console.log(err);
+            alert('' + err);
+        });
     }
 
     onPeerOpen = async id => {
@@ -133,9 +147,9 @@ class ChatRoom extends React.Component {
 
     onPeerCall = async call => {
         const stream = await startAction();
-        call.answer(stream);
         this.setState({ inCall: true });
         this.video.srcObject = stream;
+        call.answer(stream);
         call.on('stream', remoteStream => {
             this.remoteVideo.srcObject = remoteStream;
         })
@@ -258,28 +272,27 @@ class ChatRoom extends React.Component {
         const partnerPeerId = await this.props.firebase.getPartnerPeerId(this.roomId);
         this.setState({ inCall: true });
         try {
-            const stream = await startAction();
+            const stream = await getLocalStream(320);
             const call = this.peer.call(partnerPeerId, stream);
-            call.on('stream', this.receiveRemoteStream);
+            call.on('stream', remoteStream => {
+                this.remoteVideo.srcObject = remoteStream;    
+            });
             this.video.srcObject = stream;
         } catch (error) {
             console.log(error);
-            alert("User not found");
+            alert('' + error);
             //this.setState({ inCall: false });
         }
     }
     
     receiveRemoteStream = remoteStream => {
         console.log(remoteStream);
-        this.remoteVideo.srcObject = remoteStream.localStream;
+        this.remoteVideo.srcObject = remoteStream;
     }
 
     handleClickHangup = () => {
-        this.remoteVideo.srcObject = null;
-        this.video.srcObject = null;
-        this.setState({
-            inCall: false,
-        })
+        this.peer.destroy();
+       
     }
 
     render() {
