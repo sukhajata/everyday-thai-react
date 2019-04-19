@@ -5,7 +5,7 @@ import Divider from '@material-ui/core/Divider';
 import Send from '@material-ui/icons/Send';
 import VolumeUp from '@material-ui/icons/VolumeUp';
 import VideoCall from '@material-ui/icons/VideoCall';
-import LocalPhone from '@material-ui/icons/LocalPhone';
+import Cancel from '@material-ui/icons/Cancel';
 import { withStyles } from '@material-ui/core/styles';
 import styles from '../styles';
 import Loading from './Loading';
@@ -55,10 +55,6 @@ import {
 } from '@livechat/ui-kit';
 
 const english = settings.firstLanguage === 'en';
-const mediaStreamConstraints = {
-    video: { height: 180},
-    audio: true,
-  };
 
 //const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
@@ -80,7 +76,7 @@ class ChatRoom extends React.Component {
 
     onAuthenticationStateChanged = async user => {
         if (user != null) {
-            this.currentUser = await connectToChatKit(user.uid);
+            this.currentUser = await connectToChatKit("JUwxwMPqrpgqm4mRFNICsaHnQVo2");//user.uid);
         
             if (!this.currentUser) {
                 this.setState({
@@ -156,6 +152,7 @@ class ChatRoom extends React.Component {
         this.video.srcObject = stream;
         call.answer(stream);
         call.on('stream', remoteStream => {
+            console.log("Remote stream received");
             this.remoteVideo.srcObject = remoteStream;
         })
     }
@@ -278,8 +275,10 @@ class ChatRoom extends React.Component {
         this.setState({ inCall: true });
         try {
             const stream = await getLocalStream(320);
+            console.log("Local stream retrieved");
             const call = this.peer.call(partnerPeerId, stream);
             call.on('stream', remoteStream => {
+                console.log("Remote stream received");
                 this.remoteVideo.srcObject = remoteStream;    
             });
             this.video.srcObject = stream;
@@ -312,7 +311,7 @@ class ChatRoom extends React.Component {
             <ThemeProvider theme={purpleTheme}>
                 <div style={{position: 'absolute', top: 15, right: 10, zIndex: 20000, color: '#fff'}}>
                 {inCall &&
-                    <LocalPhone onClick={this.handleClickHangup} style={{ color: '#f0f0f0' }}/>
+                    <Cancel onClick={this.handleClickHangup} style={{ color: '#f0f0f0' }}/>
                 }
                 {!inCall &&
                     <VideoCall onClick={this.startVideoCall}/>

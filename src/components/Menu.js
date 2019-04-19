@@ -11,6 +11,7 @@ import ImportContacts from '@material-ui/icons/ImportContacts';
 import LibraryMusic from '@material-ui/icons/LibraryMusic';
 import Favorite from '@material-ui/icons/Favorite';
 import Forum from '@material-ui/icons/Forum';
+import ExitToApp from '@material-ui/icons/ExitToApp';
 
 import { Link } from "react-router-dom";
 
@@ -59,7 +60,13 @@ const Menu = ({ classes, handleClick }) => {
                     <ListItemText primary={language.languagePartner}/> 
                 </Link>
             </ListItem>
-    
+            <Divider/>
+            <ListItem button className={classes.listMenuItem} onClick={handleClick}>
+                <ListItemIcon><ExitToApp color="primary"/></ListItemIcon>
+                <Link className={classes.listLink} to="/signout/">
+                    <ListItemText primary={language.signout}/> 
+                </Link>
+            </ListItem>
         </List>
     </div>
     )

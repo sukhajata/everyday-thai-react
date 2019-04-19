@@ -7,6 +7,7 @@ export default {
     shareDetails: "Please share a few details",
     shareInterests: "Tell us a bit about your interests. This will be on your public profile.",
     title: "Everyday Thai",
+    signout: "Sign out",
     continue: "Continue",
     age: "Age",
     country: "Country",

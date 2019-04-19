@@ -28,6 +28,7 @@ import Song from './components/Song';
 import AudioChat from './components/AudioChat';
 import Login from './components/Login';
 import Interests from './components/Interests';
+import SignOut from './components/SignOut';
 
 import theme from './theme';
 import styles from './styles';
@@ -173,6 +174,14 @@ class App extends Component {
                   render={props => 
                     <ContentWithNavBar {...props}>
                       <Interests {...props} />
+                    </ContentWithNavBar>
+                  }
+                />
+                <Route
+                  path="/signout"
+                  render={props => 
+                    <ContentWithNavBar {...props}>
+                      <SignOut {...props} />
                     </ContentWithNavBar>
                   }
                 />

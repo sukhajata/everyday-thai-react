@@ -157,7 +157,7 @@ export async function startChat(currentUser, partnerId, firebase) {
     try {
         const englishUserId = english ? currentUser.id : partnerId;
         const thaiUserId = english ? partnerId : currentUser.id;
-        
+        console.log(englishUserId, thaiUserId);
         /*const result = await fetchJSON(API.GET_ROOM + "?englishUserId=" + englishUserId + "&thaiUserId=" + thaiUserId);
         if (result.roomId && result.roomId > 0) {
             console.log("existing room");
