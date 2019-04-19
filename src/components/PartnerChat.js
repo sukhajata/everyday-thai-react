@@ -80,7 +80,7 @@ class ChatRoom extends React.Component {
 
     onAuthenticationStateChanged = async user => {
         if (user != null) {
-            this.currentUser = await connectToChatKit("757S8KPTrRW4sxbcVf2l2QthdP63");//user.uid);
+            this.currentUser = await connectToChatKit(user.uid);
         
             if (!this.currentUser) {
                 this.setState({
@@ -120,19 +120,24 @@ class ChatRoom extends React.Component {
           //  status.innerHTML = "Connection destroyed. Please refresh";
             alert('Connection destroyed');
         });*/
-        this.peer.on('disconnected', () => {
-            this.video.srcObject.getTracks().forEach(track => track.stop());
-            this.remoteVideo.srcObject = null;
-            this.video.srcObject = null;
-            this.setState({
-                inCall: false,
-            })
-            this.setupPeer();
+        this.peer.on('disconnected', this.onPeerDisconnect);
+        this.peer.on('error', this.onPeerError);
+    }
+
+    onPeerError = err => {
+        console.log(err);
+        alert('' + err);
+        this.onPeerDisconnect();
+    }
+
+    onPeerDisconnect = () => {
+        this.video.srcObject.getTracks().forEach(track => track.stop());
+        this.remoteVideo.srcObject = null;
+        this.video.srcObject = null;
+        this.setState({
+            inCall: false,
         })
-        this.peer.on('error', function (err) {
-            console.log(err);
-            alert('' + err);
-        });
+        this.setupPeer();
     }
 
     onPeerOpen = async id => {
