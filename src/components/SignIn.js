@@ -35,14 +35,20 @@ class SignIn extends React.Component {
 
     onAuthenticationStateChanged = async (user) => {
         if(user != null) {
+            if (user.email) console.log(user.email);
+            
             const details = await this.props.firebase.getUserDetails(user.uid);
-            console.log(details);
             if (details) {
                 this.setState({
                     name: details.name ? details.name : '',
                     age: details.age ? details.age : '',
                     country: details.country ? details.country : '',
                     province: details.province ? details.province : '',
+                })
+            } else {
+                //use info from firebase auth user
+                this.setState({
+                    name: user.displayName ? user.displayName : '',
                 })
             }
         }

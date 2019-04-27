@@ -147,14 +147,14 @@ class ChatRoom extends React.Component {
     }
 
     onPeerCall = async call => {
-        const stream = await startAction();
         this.setState({ inCall: true });
-        this.video.srcObject = stream;
+        const stream = await getLocalStream(320);
         call.answer(stream);
         call.on('stream', remoteStream => {
             console.log("Remote stream received");
             this.remoteVideo.srcObject = remoteStream;
-        })
+        });
+        this.video.srcObject = stream;
     }
 
     sendMessage = async () => {
@@ -275,7 +275,7 @@ class ChatRoom extends React.Component {
         this.setState({ inCall: true });
         try {
             const stream = await getLocalStream(320);
-            console.log("Local stream retrieved");
+            console.log("Local stream retrieved. Calling " + partnerPeerId.toString());
             const call = this.peer.call(partnerPeerId, stream);
             call.on('stream', remoteStream => {
                 console.log("Remote stream received");
